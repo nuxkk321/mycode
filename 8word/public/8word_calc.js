@@ -193,12 +193,27 @@ var 地支暗会={/*三会缺一*/
     '申戌':['酉','金','西方'],
     '亥丑':['子','水','北方']
 };
-
 function check_word_sanhui(word1){
     var check_str1=word1.年支+word1.月支+word1.日支;
-    var check_str2=word1.月支+word1.日支+word1.时支;
-
-    var re=地支三会[check_str1] || 地支三会[check_str2];
+	var check_str2=word1.日支+word1.月支+word1.年支;
+    var check_str3=word1.月支+word1.日支+word1.时支;
+	var check_str4=word1.时支+word1.日支+word1.月支;
+  
+	var re;
+	if(地支三会[check_str1]){
+		re=地支三会[check_str1];
+		re.push('年月日');
+	}else if(地支三会[check_str2]){
+		re=地支三会[check_str2];
+		re.push('日月年');
+	}else if(地支三会[check_str3]){
+		re=地支三会[check_str3];
+		re.push('月日时');
+	}else if(地支三会[check_str4]){
+		re=地支三会[check_str4];
+		re.push('时日月');
+	}
+	 
     return re;
 }
 
@@ -933,6 +948,7 @@ var sb_calc={
                 var org=1;
                 var qr=zzz[v+vv+'强弱'];
 					
+					/*TODO::天干和坐下地支本气相合会削弱天干*/
                 org+=qr.克我.length*score.kewo;/*TODO::天干同性相克力度更大,地支克天干力度很小*/
                 org+=qr.我生.length*score.wosheng;/*TODO::天干异性相生力度更大*/
                 org+=qr.生我.length*score.shengwo;
