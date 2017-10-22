@@ -104,10 +104,10 @@ var 十神评分={
 	'正印':1
 };
 var 天干相冲={
-    '甲庚':1,
-    '乙辛':1,
-    '丙壬':1,
-    '丁癸':1
+    '甲庚':['甲庚'],
+    '乙辛':['乙辛'],
+    '丙壬':['丙壬'],
+    '丁癸':['丁癸']
 };
 var 天干相合={
     '甲己':'土',
@@ -117,14 +117,6 @@ var 天干相合={
     '戊癸':'火'
 };
 
-var 地支相冲={
-    '子午':1,
-    '卯酉':1,
-    '寅申':1,
-    '巳亥':1,
-    '辰戌':1,
-    '丑未':1
-};
 var 地支相合={
     '六合':{
         '子丑':'土',
@@ -159,7 +151,7 @@ var 地支相合={
 
 };
 
-function check_word_sh(word1){
+function check_word_sanhe(word1){
     var re=[];
     $.each(地支相合.三合,function(shstr,v){
         var get_item=[];
@@ -181,6 +173,29 @@ function check_word_sh(word1){
     return re;
 }
 
+function check_word_sanxing(word1){
+    var re=[];
+    $.each(地支三刑,function(sxstr,v){
+        var get_item=[];
+        var chku={};
+        $.each(['年','月','日','时'],function(k2,v2){
+            var 地支=word1[v2+'支'];
+            if(sxstr.indexOf(地支)>-1){/*找到符合的*/
+                get_item.push(v2);
+                chku[地支]=1;
+            }else{/*未找到*/
+            }
+        });
+        var cc=0;
+        for(var c in chku) cc++;
+        if(cc>2){
+            re.push([sxstr,v,get_item]);
+        }
+    });
+    return re;
+}
+
+
 var 地支三会={
     '寅卯辰':['木','东方'],
     '巳午未':['火','南方'],
@@ -188,10 +203,10 @@ var 地支三会={
     '亥子丑':['水','北方']
 };
 var 地支暗会={/*三会缺一*/
-    '寅辰':['卯','木','东方'],
-    '巳未':['午','火','南方'],
-    '申戌':['酉','金','西方'],
-    '亥丑':['子','水','北方']
+    '寅辰':['木','卯','东方'],
+    '巳未':['火','午','南方'],
+    '申戌':['金','酉','西方'],
+    '亥丑':['水','子','北方']
 };
 function check_word_sanhui(word1){
     var check_str1=word1.年支+word1.月支+word1.日支;
@@ -218,27 +233,36 @@ function check_word_sanhui(word1){
 }
 
 
+var 地支相冲={
+    '子午':['子午'],
+    '卯酉':['卯酉'],
+    '寅申':['寅申'],
+    '巳亥':['巳亥'],
+    '辰戌':['辰戌'],
+    '丑未':['丑未']
+};
+
 var 地支相刑={
-    '寅巳':'恃势之刑',
-    '巳申':'恃势之刑',
-    '申寅':'恃势之刑',
-    '未丑':'无恩之刑',
-    '丑戌':'无恩之刑',
-    '戌未':'无恩之刑',
-    '子卯':'无礼之刑'
+    '寅巳':['寅巳','无恩之刑'],
+    '巳申':['巳申','无恩之刑'],
+    '申寅':['申寅','无恩之刑'],
+    '未丑':['未丑','恃势之刑'],
+    '丑戌':['丑戌','恃势之刑'],
+    '戌未':['戌未','恃势之刑'],
+    '子卯':['子卯','无礼之刑']
 };
 /*TODO::*/
 var 地支三刑={
-    '寅巳申':'',
-    '未丑戌':''
+    '寅巳申':'无恩之刑',
+    '未丑戌':'恃势之刑'
 };
 var 地支相害={
-    '子未':'子未',
-    '丑午':'丑午',
-    '寅巳':'寅巳',
-    '卯辰':'卯辰',
-    '申亥':'申亥',
-    '酉戌':'酉戌'
+    '子未':['子未'],
+    '丑午':['丑午'],
+    '寅巳':['寅巳'],
+    '卯辰':['卯辰'],
+    '申亥':['申亥'],
+    '酉戌':['酉戌']
 };
 var 地支藏干={
     '子':['癸'],
@@ -345,7 +369,7 @@ var 地支组合={
 	'戌亥':{},
 	
 	'亥亥':{},
-}
+};
 var 天干组合={
 	'甲甲':{},
     '甲乙':{},
@@ -411,7 +435,7 @@ var 天干组合={
     '壬癸':{},
 	
 	'癸癸':{},
-}
+};
 
 function get_stem_word(index){
     var c=1;
@@ -508,7 +532,7 @@ function get_branches_relation(b1,b2){
 
     re.刑=地支相刑[asc] || 地支相刑[desc];
     if(b1==b2){
-        re.刑='自刑';
+        re.刑=[asc,'自刑'];
     }
     re.害=地支相害[asc] || 地支相害[desc];
 
@@ -516,6 +540,11 @@ function get_branches_relation(b1,b2){
 
 	re.半合=地支相合.半合[asc] || 地支相合.半合[desc];
 
+	re.暗拱=地支相合.暗拱[asc] || 地支相合.暗拱[desc];
+	
+	re.暗会=地支暗会[asc] || 地支暗会[desc];
+	
+	
     var b1_info=地支五行[b1];
     var b2_info=地支五行[b2];
     re.五行关系=get_5e_relation(b1_info[1],b2_info[1]);
@@ -764,11 +793,16 @@ var sb_calc={
         var t_arr=['年','月','日','时'];
         zzz.地支六合=[];
         zzz.地支半合=[];
+		zzz.地支暗拱=[];
+		zzz.地支暗会=[];
+
+        zzz.地支相刑=[];
+        zzz.地支相害=[];
+        zzz.地支相冲=[];
 
         zzz.天干相合=[];
+        zzz.天干相冲=[];
 
-		
-		
 		
         $.each(t_arr,function(k,v){
             var prev_z=t_arr[k-1];/*前一个*/
@@ -776,10 +810,17 @@ var sb_calc={
 
             var 天干=zzz[v+'干'];
             zzz[v+'干五行']=天干五行[天干];
-			
+
+            var 地支=zzz[v+'支'];
+            zzz[v+'支五行']=地支五行[地支];
+
 
             var diff;
-            var 天干强弱={生我:[],克我:[],我生:[],我克:[],本气通根:[],冲:[]};
+            var 天干强弱={生我:[],克我:[],我生:[],我克:[],本气通根:[],冲:[],长生:[]};
+            /*十二长生*/
+            天干强弱.长生=get_12changsheng(天干,地支);
+
+
             /*和前一个天干比较*/
             if(prev_z){
                 diff=get_stems_relation(天干,zzz[prev_z+'干']);
@@ -793,7 +834,10 @@ var sb_calc={
             /*和后一个天干比较*/
             if(next_z){
                 diff=get_stems_relation(天干,zzz[next_z+'干']);
-                if(diff.冲) 天干强弱.冲.push(diff.冲);
+                if(diff.冲){
+                    天干强弱.冲.push(diff.冲);
+                    zzz.天干相冲.push([diff.冲,v+next_z]);
+                }
 
                 if(diff.合){
                     zzz.天干相合.push([diff.合,v+next_z]);
@@ -804,13 +848,11 @@ var sb_calc={
                 if(diff[0]>0){
                     天干强弱[diff[2]?('我'+diff[1]):(diff[1]+'我')].push(next_z+'干');
                 }
+
+
+
             }
 
-
-            var 地支=zzz[v+'支'];
-			zzz[v+'支五行']=地支五行[地支];
-            
-            
 
             var 地支强弱={生我:[],克我:[],我生:[],我克:[],刑:[],冲:[],害:[]};
             /*和前一个地支比较*/
@@ -828,9 +870,19 @@ var sb_calc={
             /*和后一个地支比较*/
             if(next_z){
                 diff=get_branches_relation(地支,zzz[next_z+'支']);
-                if(diff.刑) 地支强弱.刑.push(diff.刑);
-                if(diff.冲) 地支强弱.冲.push(diff.冲);
-                if(diff.害) 地支强弱.害.push(diff.害);
+                if(diff.刑){
+                    地支强弱.刑.push(diff.刑);
+                    zzz.地支相刑.push([diff.刑,v+next_z]);
+                }
+                if(diff.冲){
+                    地支强弱.冲.push(diff.冲);
+                    zzz.地支相冲.push([diff.冲,v+next_z]);
+                }
+                if(diff.害){
+                    地支强弱.害.push(diff.害);
+                    zzz.地支相害.push([diff.害,v+next_z]);
+                }
+
 
                 if(diff.六合){
                     zzz.地支六合.push([diff.六合,v+next_z]);
@@ -838,7 +890,12 @@ var sb_calc={
                 if(diff.半合){
                     zzz.地支半合.push([diff.半合,v+next_z]);
                 }
-
+				if(diff.暗拱){
+                    zzz.地支暗拱.push([diff.暗拱,v+next_z]);
+                }
+				if(diff.暗会){
+                    zzz.地支暗会.push([diff.暗会,v+next_z]);
+                }
                 zzz[v+'支'+next_z+'支']=diff;
                 diff=diff.五行关系;
                 if(diff[0]>0){
@@ -893,7 +950,18 @@ var sb_calc={
                 zzz[v+'支'+v2+'气透干']=tg;
             });
         });
- 
+
+
+        zzz.地支三合=check_word_sanhe(zzz);
+
+        zzz.地支三刑=check_word_sanxing(zzz);
+
+        //四土齐全??
+        zzz.地支三会=check_word_sanhui(zzz);
+
+
+
+
 		zzz.日主={
 			'强弱':[
 				get_12changsheng(zzz.日干,zzz.月支),
@@ -922,7 +990,6 @@ var sb_calc={
 				时支余气:get_stems_10G(zzz.时支余气,zzz.日干)
 			}
 		};
-		
 		
         /**/
         $.each(t_arr,function(k,v){
@@ -976,17 +1043,14 @@ var sb_calc={
         $.each(zzz.地支六合,function(k,v){
             hj[v[0]]+=parseFloat(score.lh);
         });
+
         $.each(zzz.地支半合,function(k,v){
             hj[v[0][0]]+=parseFloat(score.banhe);
         });
 
-        zzz.地支三合=check_word_sh(zzz);
         $.each(zzz.地支三合,function(k,v){
 			hj[v[0]]+=parseFloat(score.sanhe);
 		});
-
-		//四土齐全??
-        zzz.地支三会=check_word_sanhui(zzz);
         if(zzz.地支三会){
             hj[zzz.地支三会[0]]+=parseFloat(score.sanhui);
         }
@@ -994,6 +1058,7 @@ var sb_calc={
         $.each(zzz.天干相合,function(k,v){
             hj[v[0]]+=parseFloat(score.tgh);
         });
+
         $.each(hj,function(k,v){
             hj[k]=parseFloat(v.toFixed(5));
         });
