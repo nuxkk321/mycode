@@ -945,23 +945,21 @@
 								var key=xaxis.length-1;
 								var dated_hstart=dated[3]-1;
 								var dated_hend=dated[3]+1;
-								series[0].data.push([
-									key,winfo.五行统计.土,
+                                var total_y_axis=winfo.五行统计.总和;
+
+                                series[0].data.push([
+									key,
+                                    total_y_axis,
 									[
-										[winfo.年干,winfo.年支],
-										[winfo.月干,winfo.月支],
-										[winfo.日干,winfo.日支],
-										[winfo.时干,winfo.时支]
+										[winfo.年干,winfo.年支,winfo.年干强弱.长生],
+										[winfo.月干,winfo.月支,winfo.月干强弱.长生],
+										[winfo.日干,winfo.日支,winfo.日干强弱.长生],
+										[winfo.时干,winfo.时支,winfo.时干强弱.长生]
 									],
 									dated[0]+'/'+dated[1]+'/'+dated[2],
 									dated_hstart+':00:00~'+dated_hend+':00:00'
 								]);
-								series[1].data.push([key,winfo.五行统计.金]);
-								series[2].data.push([key,winfo.五行统计.水]);
-								series[3].data.push([key,winfo.五行统计.木]);
-								series[4].data.push([key,winfo.五行统计.火]);
 
-								var total_y_axis=winfo.五行统计.总和;
                                 /*天干部分*/
                                 var str='';
                                 if(winfo.天干相冲.length>0){
@@ -1244,7 +1242,43 @@
 					str+='<div>'+params[0].data[3]+'</div>';
 					str+='<div>'+params[0].data[4]+'</div>';
                     var word=params[0].data[2];
-                    str+='<div><span></span>'+word[0][0]+word[1][0]+word[2][0]+word[3][0]+'</div>';
+                    /*天干部分*/
+                    str+='<table>';
+
+
+                    str+='<tr>';
+                    $.each([0,1,2,3],function(k,v){
+                        str+=
+                        '<td>'+
+                            '<table>' +
+                                '<tr>' +
+                                    '<td>'+(k==0?word[k][0]:'')+'</td>' +
+                                    '<td>'+(k==1?word[k][0]:'')+'</td>' +
+                                    '<td>'+(k==2?word[k][0]:'')+'</td>' +
+                                    '<td>'+(k==3?word[k][0]:'')+'</td>' +
+                                '</tr>' +
+                                '<tr>' +
+                                    '<td>'+word[k][2][0][0]+'</td>' +
+                                    '<td>'+word[k][2][1][0]+'</td>' +
+                                    '<td>'+word[k][2][2][0]+'</td>' +
+                                    '<td>'+word[k][2][3][0]+'</td>' +
+                                '</tr>' +
+                                '<tr>' +
+                                    '<td>x'+word[k][2][0][1]+'</td>' +
+                                    '<td>x'+word[k][2][1][1]+'</td>' +
+                                    '<td>x'+word[k][2][2][1]+'</td>' +
+                                    '<td>x'+word[k][2][3][1]+'</td>' +
+                                '</tr>' +
+                            '</table>'+
+                        '</td>';/*十二长生*/
+                    });
+                    str+='</tr>';
+
+
+                    str+='</table>';
+
+
+                    /*地支部分*/
                     str+='<div>'+word[0][1]+word[1][1]+word[2][1]+word[3][1]+'</div>';
 
 					
