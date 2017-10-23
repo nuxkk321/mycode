@@ -345,7 +345,7 @@
                         </div>
                     </td>
                     <td style="width:600px">
-                        <div id="main" style="width:100%;min-height: 800px">
+                        <div id="main" style="width:100%;min-height: 700px">
 
                         </div>
                         <div id="branche_box" style="position: relative">
@@ -940,7 +940,7 @@
 							
 							}else{
 								var dated=sb_calc.get_date_arr(parseInt(k));
-								xaxis.push(dated[5]);
+								xaxis.push(dated[1]+'-'+dated[2]+' '+dated[3]+':00');
 								
 								var key=xaxis.length-1;
 								var dated_hstart=dated[3]-1;
@@ -972,7 +972,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:5
+                                        yAxis:7
                                     });
                                 }
 
@@ -990,7 +990,7 @@
 									series[s_num].markPoint.data.push({
 										name:str,
 										xAxis:key,
-										yAxis:4
+										yAxis:6
 									});
 								}
 
@@ -1004,7 +1004,7 @@
 									series[五行[sanhui_5e]].markPoint.data.push({
 										name:'三会:'+sanhui_5e,
 										xAxis:key,
-										yAxis:1
+										yAxis:5
 									});
 								}
 
@@ -1013,7 +1013,7 @@
 									series[五行[sanhe_5e]].markPoint.data.push({
 										name:'地支三合:'+winfo.地支三合[0],
 										xAxis:key,
-										yAxis:0
+										yAxis:4
 									});
 								}	
 								if(winfo.地支暗会.length>0){
@@ -1030,7 +1030,7 @@
 									series[s_num].markPoint.data.push({
 										name:"暗会:\r\n "+str,
 										xAxis:key,
-										yAxis:-1
+										yAxis:3
 									});
 								}
                                 /*检查暗拱*/
@@ -1066,7 +1066,7 @@
 									series[s_num].markPoint.data.push({
 										name:"暗拱:\r\n "+str,
 										xAxis:key,
-										yAxis:-2
+										yAxis:2
 									});
 								}
                                 /*检查半合*/
@@ -1102,7 +1102,7 @@
 									series[s_num].markPoint.data.push({
 										name:"半合:\r\n "+str,
 										xAxis:key,
-										yAxis:-3
+										yAxis:1
 									});
 								}
 								
@@ -1121,7 +1121,7 @@
 									series[s_num].markPoint.data.push({
 										name:"六合:\r\n "+str,
 										xAxis:key,
-										yAxis:-4,
+										yAxis:0
 									});
 								}	
 
@@ -1135,7 +1135,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-5
+                                        yAxis:-2
                                     });
                                 }
 
@@ -1147,7 +1147,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-6
+                                        yAxis:-3
                                     });
                                 }
 
@@ -1159,7 +1159,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-7
+                                        yAxis:-4
                                     });
                                 }
                                 if(winfo.地支相害.length>0){
@@ -1170,7 +1170,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-8,
+                                        yAxis:-5,
                                     });
                                 }
 
@@ -1244,7 +1244,7 @@
 					str+='<div>'+params[0].data[3]+'</div>';
 					str+='<div>'+params[0].data[4]+'</div>';
                     var word=params[0].data[2];
-                    str+='<div>'+word[0][0]+word[1][0]+word[2][0]+word[3][0]+'</div>';
+                    str+='<div><span></span>'+word[0][0]+word[1][0]+word[2][0]+word[3][0]+'</div>';
                     str+='<div>'+word[0][1]+word[1][1]+word[2][1]+word[3][1]+'</div>';
 
 					
@@ -1273,7 +1273,7 @@
             },
             yAxis: {
                 type: 'value',
-                min:-8
+                min:-5
             },
             series:[]
         });
