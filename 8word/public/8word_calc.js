@@ -460,6 +460,35 @@ function get_branches_5e(s){
     var self_info=地支五行[s];
     return 地支五行[s][0]+地支五行[s][1];
 }
+/*例: aim='日'，结果格式为
+* [
+    [
+        年干的关系,
+        年干本气的关系,
+        年干中气的关系,
+        年干余气的关系
+    ],
+    [月的...],
+    [],
+    []
+* ]
+*
+* */
+function get_stems_10G_all(winfo,aim){
+    var re=[[],[],[],[]];
+    $.each(['年','月','日','时'],function(k,v){
+        if(aim==v){
+            re[k].push('');
+        }else{
+            re[k].push(get_stems_10G(winfo[v+'干'],winfo[aim+'干']));
+        }
+
+        re[k].push(get_stems_10G(winfo[v+'支本气'],winfo[aim+'干']));
+        re[k].push(get_stems_10G(winfo[v+'支中气'],winfo[aim+'干']));
+        re[k].push(get_stems_10G(winfo[v+'支余气'],winfo[aim+'干']));
+    });
+    return re;
+}
 function get_stems_10G(t,s){
 	if(!t) return '';
 	
@@ -664,7 +693,7 @@ var sb_calc={
         var date_arr=sb_calc.get_date_arr(str);
         var year=date_arr[0];
 
-        var next=function(err,split_info){
+        sb_calc.get_lunar_month_data(year,function(err,split_info){
             if(err){
                 cb(err);
                 return ;
@@ -692,24 +721,25 @@ var sb_calc={
                 //if(catcht==0) catcht=12;
             }
             cb('',catcht);
-        };
-        if(lunar_month_start_point_list[year]){
-            next('',lunar_month_start_point_list[year]);
+        });
+    },
+	get_lunar_month_data:function(year,cb){
+		if(lunar_month_start_point_list[year]){
+            cb('',lunar_month_start_point_list[year]);
         }else{
             $.ajax({
                 url:"../public/month_jieqi_"+year+".json",
                 dataType: "json",
                 success: function(re){
                     lunar_month_start_point_list[year]=re;
-                    next('',lunar_month_start_point_list[year]);
+                    cb('',lunar_month_start_point_list[year]);
                 },
                 error:function(){
-                    next('ajax fail');
+                    cb('ajax fail');
                 }
             });
         }
-    },
-
+	},
     get_stem_word:function(){
 
     },
@@ -963,6 +993,10 @@ var sb_calc={
         zzz.地支三会=check_word_sanhui(zzz);
 
 
+
+        $.each(['年','月','日','时'],function(k,v){
+            zzz[v+'干全部十神']=get_stems_10G_all(zzz,v);
+        });
 
 
 		zzz.日主={
