@@ -494,19 +494,21 @@
             $.each([0,1,2,3],function(k,v){
                 re+='<td>';
                 if(part_num==v){
-                    re+=word_info[part+'干']+'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>';
+                    re+='<div>'+word_info[part+'干']+'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span></div>';
                 }else{
                     re+='&nbsp;&nbsp;';
                 }
                 re+='</td>';
             });
             re+='</tr>';
-            $.each([0,1,2],function(k,v){
+            $.each(q_arr,function(k,qi_name){
                 re+='<tr>';
-                $.each(tg,function(kk,vv){
+                $.each(tg,function(zhu_pos,vv){
                     re+='<td>';
-                    if(vv[v][0]){
-                        re+='<div>'+vv[v][0]+'</div><div>'+vv[v][3]+'</div>';
+                    if(vv[qi_name].通根类型){
+                        re+=
+                        '<div>'+vv[qi_name].通根类型+'</div>' +
+                        '<div>'+vv[qi_name].最终得分+'</div>';
                     }else{
                         re+='&nbsp;';
                     }
@@ -516,7 +518,10 @@
             });
 
             re+='</table>';
-
+            re+='总计:'+parseFloat(tg_min_score+word_info[part+'干强弱'].通根得分).toFixed(1);
+            if(word_info[part+'干强弱'].正根<1){
+                re+='(无正根)'
+            }
             return re;
         }
         function tg_gx(rela){
@@ -630,7 +635,6 @@
         $('.c_5_1',winfo_box).html(
             '<table>' +
                 '<tr>' +
-                    '<td rowspan="3">地支藏干</td>' +
                     '<td>本气:</td>' +
                 '</tr>' +
                 '<tr>' +
@@ -643,18 +647,18 @@
         );
         function build_cg_box(info,part){
             var cg_el='';
+            var part_pos_num=t_arr_key[part];
 
-            $.each(['本','中','余'],function(k2,v2) {
-                var part_pos_num=t_arr_key[part];
-                var tg=info[part+'支'+v2+'气'][2];
-                tg='';
-                var e5info=info[part+'支'+v2+'气'][1];
+            $.each(['本','中','余'],function(k2,qi_name) {
+                var cg_info=info[part+'支'+qi_name+'气'];
+                var e5info=cg_info.五行;
                 if(e5info){
-                    tg+='<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'
+                    var tg='';
+                    tg+='<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>';
+                    tg+='('+info[part+'支'+qi_name+'气'].透出.length+'):'+info.日干全部十神[part_pos_num][k2+1];
+                    cg_el+='<div>'+(info[part+'支'+qi_name+'气'].天干 || '&nbsp;')+tg+'</div>';
                 }
-                tg+=':'+info.日干全部十神[part_pos_num][k2+1];
 
-                cg_el+='<div>'+(info[part+'支'+v2+'气'][0] || '&nbsp;')+tg+'</div>';
             });
             return cg_el;
         }
@@ -1101,14 +1105,18 @@
 
                                     /*第三~五行,所有通根情况*/
                                     var tg=winfo[part+'干强弱'].通根;
-                                    $.each([0,1,2],function(k1,v1){
+                                    $.each(q_arr,function(k1,q_name){
                                         cell_str+='<tr>';
-                                        $.each([0,1,2,3],function(k4,v4){
-                                            cell_str+='<td>'+(tg[v4][v1][3])+'</td>';
+                                        $.each([0,1,2,3],function(k4,zhu_pos){
+                                            cell_str+='<td>'+(tg[zhu_pos][q_name].最终得分>=1?tg[zhu_pos][q_name].最终得分:'')+'</td>';
                                         });
                                         cell_str+='</tr>';
                                     });
                                     cell_str+='<table>';
+                                    cell_str+='总计:'+parseFloat(tg_min_score+winfo[part+'干强弱'].通根得分).toFixed(1);
+                                    if(winfo[part+'干强弱'].正根<1){
+                                        cell_str+='(无正根)'
+                                    }
                                     $('#word_info_box2 .c_2_'+col_num).html(cell_str);
 
 
@@ -1121,8 +1129,8 @@
                                     /*第7~9行,藏干和透出*/
                                     $.each(['本','中','余'],function(k1,v1){
                                         cell_str+='<div>';
-                                        cell_str+=winfo[part+'支'+v1+'气'][0]?
-                                                (winfo[part+'支'+v1+'气'][0]+'('+winfo[part+'支'+v1+'气'][2].length+')'):
+                                        cell_str+=winfo[part+'支'+v1+'气'].天干?
+                                                (winfo[part+'支'+v1+'气'].天干+'('+winfo[part+'支'+v1+'气'].透出.length+')'):
                                                 '';
                                         cell_str+='</div>';
                                     });

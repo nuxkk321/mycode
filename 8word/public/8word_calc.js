@@ -13,6 +13,7 @@ function fix_num(b,length){
 }
 var t_arr=['年','月','日','时'];
 var t_arr_key={年:0,月:1,日:2,时:3};
+var q_arr=['本气','中气','余气'];
 
 var 五行={'土':0,'金':1,'水':2,'木':3,'火':4};
 var 五行关系=['同我','我生','我克','克我','生我'];
@@ -485,9 +486,9 @@ function get_stems_10G_all(winfo,aim){
             re[k].push(get_stems_10G(winfo[v+'干'],winfo[aim+'干']));
         }
 
-        re[k].push(get_stems_10G(winfo[v+'支本气'][0],winfo[aim+'干']));
-        re[k].push(get_stems_10G(winfo[v+'支中气'][0],winfo[aim+'干']));
-        re[k].push(get_stems_10G(winfo[v+'支余气'][0],winfo[aim+'干']));
+        re[k].push(get_stems_10G(winfo[v+'支本气'].天干,winfo[aim+'干']));
+        re[k].push(get_stems_10G(winfo[v+'支中气'].天干,winfo[aim+'干']));
+        re[k].push(get_stems_10G(winfo[v+'支余气'].天干,winfo[aim+'干']));
     });
     return re;
 }
@@ -660,67 +661,72 @@ var tg_rate_map=[
     [12,24,60,24],
     [6,10,24,60]
 ];
-var tg_rate_score=1/60;/*实际计算时的修正值*/
+var tg_rate_fix=1/60;/*实际计算时的修正值*/
 var tg_base_score=100;
 var tg_min_score=30;
 
 /*计算天干通根*/
 function calc_stem_tg_value(winfo,pos_input_num){
-    var re=[['','',''],['','',''],['','',''],['','','']];
+    var re=[{},{},{},{}];
     var current_pos_num=t_arr_key[pos_input_num];
     var stem=winfo[pos_input_num+'干'];
     var stem_10G_all=winfo[pos_input_num+'干全部十神'];
     var stem_12cs_all=winfo[pos_input_num+'干全部十二长生'];
-
-
-    $.each(re,function(pos_num,v){
-        var changsheng=stem_12cs_all[pos_num];
+    $.each(re,function(zhu_pos,v){
+        var changsheng=stem_12cs_all[zhu_pos];
         if(changsheng=='墓'){/*TODO::墓库根*/
         }else{
         }
 
-        if(pos_num==current_pos_num){/*TODO::同柱的特殊情况*/
+        if(zhu_pos==current_pos_num){/*TODO::同柱的特殊情况*/
         }else{
         }
         var shishen;
-        var cg_qname=['本气','中气','余气'];
         var cg_10g_bq_name_map={比肩:'禄根',劫财:'劫根'};
+        var cg_10g_bq_score_map={比肩:1,劫财:0.9};
 
         $.each([1,2,3],function(kk,vv){
-            var curname=cg_qname[kk];
-            var brcg=winfo[t_arr[pos_num]+'支'+curname];
-            //console.log('当前检查的是:'+pos_input_num+'干 在'+pos_num+'柱 藏干的'+curname+',十神:'+shishen+' 占比:',brcg);
-            var tg_re=['',brcg[3],0];
-            shishen=stem_10G_all[pos_num][vv];
+            var qi_name=q_arr[kk];
+            var brcg=winfo[t_arr[zhu_pos]+'支'+qi_name];
+            //console.log('当前检查的是:'+pos_input_num+'干 在'+zhu_pos+'柱 藏干的'+qi_name+',十神:'+shishen+' 占比:',brcg);
+            var tg_re={
+                通根类型:'',
+                藏干占比:brcg.本柱占比,
+                四柱占比:tg_rate_map[current_pos_num][zhu_pos],
+                通根得分:0
+            };
+            //winfo[t_arr[zhu_pos]+'支藏干数'];
+
+            shishen=stem_10G_all[zhu_pos][vv];
 
             /*通根类型力量比率*/
             switch (shishen){
                 case '比肩':
                 case '劫财':
-                    if(kk==0){/*本气*/
+                    if(qi_name=='本气'){
                         if(stem=='戊' || stem=='己'){
-                            tg_re[0]='本气';
-                            tg_re[2]=0.9;
+                            tg_re.通根类型='正根';
+                            tg_re.通根得分=0.9;
                         }else{
-                            tg_re[0]=cg_10g_bq_name_map[shishen];
-                            tg_re[2]=1;
+                            tg_re.通根类型=cg_10g_bq_name_map[shishen];
+                            tg_re.通根得分=cg_10g_bq_score_map[shishen];
                         }
-                    }else{
-                        tg_re[0]='得气';
-                        tg_re[2]=1;
+                    }else{ /*其余的都算得气*/
+                        tg_re.通根类型='得气';
+                        tg_re.通根得分=1;
                     }
                     break;
                 case '偏印':
-                    tg_re[0]='生扶';
-                    tg_re[2]=0.18;
+                    tg_re.通根类型='生扶';
+                    tg_re.通根得分=0.18;
                     break;
                 case '正印':
-                    tg_re[0]='生扶';
-                    tg_re[2]=0.2;
+                    tg_re.通根类型='生扶';
+                    tg_re.通根得分=0.2;
                     break;
                 default :
             }
-            re[pos_num][kk]=tg_re;
+            re[zhu_pos][qi_name]=tg_re;
         });
     });
 
@@ -934,12 +940,17 @@ var sb_calc={
             $.each(['本','中','余'],function(k2,v2) {
                 if(cg[k2]) cg_count++;/*计算藏干数量*/
             });
-            var cg_rate=cg_rate_map[String(cg_count)];
+            zzz[v+'支藏干数']=cg_count;
 
+            var cg_rate=cg_rate_map[String(cg_count)];
             $.each(['本','中','余'],function(k2,v2) {
                 var cg_word=cg[k2] || '';
-                zzz[v+'支'+v2+'气']=[cg_word,天干五行[cg_word],check_cg_tc(cg_word,zzz),cg_rate[k2] || 0];
-                /*格式为[藏干的字,藏干的五行,藏干的透干位置数组,藏干力量占比]*/
+                zzz[v+'支'+v2+'气']={
+                    天干:cg_word,
+                    五行:天干五行[cg_word],
+                    透出:check_cg_tc(cg_word,zzz),/*藏干的透干位置数组*/
+                    本柱占比:cg_rate[k2] || 0
+                };
             });
         });
         $.each(t_arr,function(k,v){
@@ -960,8 +971,28 @@ var sb_calc={
             var 天干=zzz[v+'干'];
             zzz[v+'干五行']=天干五行[天干];
 
-            var 天干强弱={生我:[],克我:[],我生:[],我克:[],冲:[],通根:[]};
+            var 天干强弱={生我:[],克我:[],我生:[],我克:[],冲:[],通根:[],正根:0,通根得分:0};
             天干强弱.通根=calc_stem_tg_value(zzz,v);
+
+            /*计算正根的数量*/
+            var zg=0;
+            $.each(天干强弱.通根,function(zhu_pos,v2){
+                $.each(v2,function(qi_name,v3){
+                    switch(v3.通根类型){
+                        case '禄根':
+                        case '劫根':
+                        case '正根':
+                            zg+=1;
+                            break;
+                        case '得气':
+                            /*TODO::只得中、余气根情况*/
+                            zg+=1;
+                            break;
+                    }
+                    //console.log(v+'干 在 '+zhu_pos+' 柱',qi_name+',通根类型:',v3.通根类型);
+                });
+            });
+            天干强弱.正根=zg;
 
             var 地支=zzz[v+'支'];
             zzz[v+'支五行']=地支五行[地支];
@@ -1119,7 +1150,6 @@ var sb_calc={
             '壬':0,
             '癸':0
         };
-        var cg_qname=['本气','中气','余气'];
         $.each(t_arr,function(k,v){
             var current_pos_num=t_arr_key[v];
 
@@ -1127,21 +1157,22 @@ var sb_calc={
             hj[天干]+=tg_min_score;
 
             var qr=zzz[v+'干强弱'];
-            //干
-            //[[本,中,余],[],[],[]]
-            $.each(qr.通根,function(kk,vv){
-                var tg_rate=tg_rate_map[current_pos_num][kk];
-                //console.log('当前计算的是:'+v+'干在 '+kk+'柱通根,四柱力量占比:',tg_rate);
-                $.each(vv,function(kkk,vvv){
-                    var curname=cg_qname[kkk];
-                    var final_score=vvv[1]*vvv[2]*tg_rate*tg_rate_score*tg_base_score;
-                    final_score=parseFloat(final_score.toFixed(3));
-                    qr.通根[kk][kkk][3]=final_score;
+            $.each(qr.通根,function(zhu_pos,vv){
+                //console.log('当前计算的是:'+v+'干在 '+zhu_pos+'柱通根,四柱力量占比:',tg_rate);
+                $.each(vv,function(qi_name,vvv){
+                    var final_score=vvv.藏干占比*vvv.四柱占比*vvv.通根得分*tg_rate_fix*tg_base_score;
+                    final_score=parseFloat(final_score.toFixed(1));
+                    qr.通根[zhu_pos][qi_name].最终得分=final_score;
+                    qr.通根得分+=final_score;
                     hj[天干]+=final_score;
-                    //console.log('当前计算的是:'+v+'干在 '+kk+'柱 '+curname+' 的通根情况:'+vvv[0]+',藏干占比:',vvv[1],' 通根类型力量比率:',vvv[2],' 最终力量评分:',final_score);
-                })
+                    //console.log('当前计算的是:'+v+'干在 '+zhu_pos+'柱 '+qi_name+' 的通根情况:'+vvv[0]+',藏干占比:',vvv[1],' 通根类型力量比率:',vvv[2],' 最终力量评分:',final_score);
+                });
             });
-            $.each(cg_qname,function(kk,vv){
+            //console.log(v+'干:',天干,'正根数量:',qr.正根,' 通根得分:',qr.通根得分);
+
+
+            /*透干的得分*/
+            $.each(q_arr,function(kk,vv){
                 var cg=zzz[v+'支'+vv];
                 if(cg[0]){
                     var final_score=cg[3];
@@ -1201,7 +1232,7 @@ var sb_calc={
         //});
 
         $.each(hj,function(k,v){
-            hj[k]=parseFloat(v.toFixed(2));
+            hj[k]=parseFloat(v.toFixed(1));
         });
         zzz.统计=hj;
         return zzz;
