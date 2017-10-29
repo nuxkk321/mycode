@@ -1168,11 +1168,13 @@
 
                                     var cell_str='';
                                     /*第1行,基本天干*/
-                                    cell_str+='<tr>';
-                                    cell_str+='<td colspan="4">';
-                                    cell_str+='流'+part+'天干:'+liunian[part+'干']+'('+liunian[part+'干强弱'].综合得分+')';
-                                    cell_str+='</td>';
-                                    cell_str+='</tr>';
+                                    if(calc_param.compare_by_input){
+                                        cell_str+='<tr>';
+                                        cell_str+='<td colspan="4">';
+                                        cell_str+='流'+part+'天干:'+liunian[part+'干']+'('+liunian[part+'干强弱'].综合得分+')';
+                                        cell_str+='</td>';
+                                        cell_str+='</tr>';
+                                    }
                                     cell_str+='<tr>';
                                     $.each(t_arr,function(kn,vn){
                                         cell_str+='<td>';
@@ -1253,39 +1255,40 @@
 
 
                                     /*流年地支*/
-                                    cell_str+='<tr><td colspan="4">'+'流'+part+'地支:';
-                                    cell_str+='</td></tr>';
+                                    if(calc_param.compare_by_input) {
+                                        cell_str+='<tr><td colspan="4">'+'流'+part+'地支:';
+                                        cell_str+='</td></tr>';
 
-                                    cell_str+='<tr>';
-                                    $.each(t_arr,function(kn,vn){
-                                        cell_str+='<td>';
-                                        if(part==vn){
-                                            cell_str+=liunian[part+'支'];
-                                        }else{
-                                            cell_str+='&nbsp;&nbsp;';
-                                        }
-                                        cell_str+='</td>';
-                                    });
-                                    cell_str+='</tr>';
-
-                                    $.each(q_arr,function(k1,v1){
                                         cell_str+='<tr>';
                                         $.each(t_arr,function(kn,vn){
                                             cell_str+='<td>';
                                             if(part==vn){
-                                                if(winfo[part+'支'+v1].天干){
-                                                    cell_str+=liunian[part+'支'+v1].天干+
-                                                    '('+liunian[part+'支'+v1].命局透出.length+')'+
-                                                    '('+liunian[part+'支'+v1].流年透出.length+')';
-                                                }
+                                                cell_str+=liunian[part+'支'];
                                             }else{
                                                 cell_str+='&nbsp;&nbsp;';
                                             }
                                             cell_str+='</td>';
                                         });
                                         cell_str+='</tr>';
-                                    });
 
+                                        $.each(q_arr,function(k1,v1){
+                                            cell_str+='<tr>';
+                                            $.each(t_arr,function(kn,vn){
+                                                cell_str+='<td>';
+                                                if(part==vn){
+                                                    if(winfo[part+'支'+v1].天干){
+                                                        cell_str+=liunian[part+'支'+v1].天干+
+                                                        '('+liunian[part+'支'+v1].命局透出.length+')'+
+                                                        '('+liunian[part+'支'+v1].流年透出.length+')';
+                                                    }
+                                                }else{
+                                                    cell_str+='&nbsp;&nbsp;';
+                                                }
+                                                cell_str+='</td>';
+                                            });
+                                            cell_str+='</tr>';
+                                        });
+                                    }
 
                                     $('#word_info_box2 .zhu_info_'+k0).html(cell_str);
                                 });
@@ -1346,6 +1349,16 @@
                                             });
                                         }
 
+                                        break;
+                                    case '地支三会':
+                                        if(winfo.地支三会){
+                                            var sanhui_5e=winfo.地支三会[0];
+                                            series[五行[sanhui_5e]].markPoint.data.push({
+                                                name:'三会:'+sanhui_5e,
+                                                xAxis:key,
+                                                yAxis:200
+                                            });
+                                        }
                                         break;
                                     case '地支三合':
                                         if(winfo.地支三合.length>0){
@@ -1411,14 +1424,8 @@
                                 /*地支部分*/
                                 var sanhui;
                                 var sanhe;
-                                if(liunian.地支三会){
-                                    var sanhui_5e=liunian.地支三会[0];
-                                    series[五行[sanhui_5e]].markPoint.data.push({
-                                        name:'三会:'+sanhui_5e,
-                                        xAxis:key,
-                                        yAxis:200
-                                    });
-                                }
+
+                                add_markpoint(liunian,'地支三会');
 
                                 add_markpoint(liunian,'地支三合');
 
