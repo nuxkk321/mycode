@@ -8,7 +8,6 @@
         body, html {
             height: 100%;
             width: 100%;
-            overflow: hidden;
             margin: 0;
             padding: 0;
             min-width: 500px;
@@ -120,7 +119,7 @@
             margin-left:290px;
             position: relative;
             width: auto;
-            height:100%;
+            height:1200px;
             overflow: hidden;
         }
         #display_box .box_block{
@@ -389,7 +388,7 @@
                     </div>
                 </td>
                 <td style="width:600px">
-                    <div id="main" style="width:100%;min-height: 800px">
+                    <div id="main" style="width:100%;min-height: 1200px">
 
                     </div>
                     <div id="branche_box" style="position: relative">
@@ -397,6 +396,7 @@
                 </td>
             </tr>
         </table>
+		
     </div>
 
     <div id="word_info_box2" style="display: none">
@@ -426,6 +426,8 @@
         </table>
     </div>
 </body>
+
+
 <script type="text/javascript" src='../public/jquery-1.10.2.min.js'></script>
 <script type="text/javascript" src='../public/jedate/jquery.jedate-3.7.min.js'></script>
 <script type="text/javascript" src='../public/echarts.min.js'></script>
@@ -1035,6 +1037,8 @@
                         },
                         data:[],
                         markPoint:{
+							symbol:'circle',
+							symbolSize:28,
                             label:{
                                 normal:{
                                     formatter: function (param) {
@@ -1074,67 +1078,15 @@
                             },
                             data:[]
                         }
-                    });/*5*/
-                    series.push({
-                        type:'line',
-                        name:'其他2',
-                        smooth:true,
-                        lineStyle:{
-                            normal:{
-                                color:'#000',
-                                opacity:0.2
-                            }
-                        },
-                        data:[],
-                        markPoint:{
-                            label:{
-                                normal:{
-                                    formatter: function (param) {
-                                        return param.name;
-                                    },
-                                    textStyle: {
-                                        color: '#000'
-                                    }
-                                }
-                            },
-                            itemStyle:{
-                                normal:{
-                                    color:'#FF34B3',
-                                    borderWidth:0.5,
-                                    borderColor :'#000',
-                                    show:true
-                                }
-                            },
-                            data:[]
-                        },
-                        markLine:{
-                            label:{
-                                normal:{
-                                    formatter: function (param) {
-                                        return param.name;
-                                    },
-                                    textStyle: {
-                                        color: '#000'
-                                    }
-                                }
-                            },
-                            lineStyle:{
-                                normal:{
-                                    color:'#000',
-                                    type:'dashed'
-                                }
-                            },
-                            data:[]
-                        }
-                    });/*6*/
+                    }); 
 					/*TODO::*/
                     $.each(lunar_month,function(k,v){
 						
                     });
-                    series[5].markLine.data.push({
-                        name: 'Y 轴值为 100 的水平线',
-                        xAxis: 100
-                    });
+                    //series[5].markLine.data.push({
+                    //    name: 'Y 轴值为 100 的水平线',
+                    //    xAxis: 100
+                    //});
                     var calc_length=$('#calc_length').val();
 					
                     $.each(word_info_list,function(k,calc_re){
@@ -1142,10 +1094,20 @@
 
 
                         }else{
+						
                             var dated=sb_calc.get_date_arr(parseInt(k));
-                            xaxis.push(dated[1]+'-'+dated[2]+' '+dated[3]+':00');
-
-                            var key=xaxis.length-1;
+                            xaxis.push(dated[3]+':00');
+							
+							var key=xaxis.length-1;
+							if(dated[3]=='00'){
+								series[5].markLine.data.push({
+									name: dated[0]+'-'+dated[1]+'-'+dated[2],
+									xAxis: key,
+								});
+							}
+							
+					
+                            
                             var dated_hstart=dated[3]-1;
                             var dated_hend=dated[3]+1;
 
@@ -1333,10 +1295,15 @@
                             ]);
 
 
+							
+							//以下是markpoint
+							var pos_step_length=190;
+							
                             function add_markpoint(winfo,type,pos){
                                 var str='';
                                 var s_num=0;
                                 if(!pos) pos=0;
+								pos=-pos*pos_step_length
                                 switch(type){
                                     case '天干相冲':
                                         if(winfo.天干相冲.length>0){
@@ -1367,8 +1334,20 @@
                                                 yAxis:pos
                                             });
                                         }
-
                                         break;
+									case '同五行':
+									   var chk_5e=winfo['同五行'] || {};
+										$.each(chk_5e,function(kk,vv){
+											if(vv.length>2){
+												s_num=五行[kk];
+												series[s_num].markPoint.data.push({
+													name:vv.length+"字同五行: \r \n"+vv,
+													xAxis:key,
+													yAxis:pos
+												});
+											}
+										});
+										break;
                                     case '地支三会':
                                         if(winfo.地支三会){
                                             var sanhui_5e=winfo.地支三会[0];
@@ -1388,19 +1367,140 @@
                                                 yAxis:pos
                                             });
                                         }
-
-
                                         break;
+									case '地支暗会':
+										if(winfo.地支暗会.length>0){
+											str='';
+											s_num=0;
+											var check_5e={};
+											$.each(winfo.地支暗会,function(k,v){
+												str+=''+v[1]+' : '+v[0][1]+v[0][0]+" \r\n ";
+												check_5e[v[0][0]]=1;
+											});
+											if(obj_length(check_5e)==1){
+												s_num=五行[winfo.地支暗会[0][0][0]];
+											}
+											series[s_num].markPoint.data.push({
+												name:"暗会:\r\n "+str,
+												xAxis:key,
+												yAxis:pos
+											});
+										}
+										break;
+									case '地支暗拱':
+										var 地支暗拱=winfo.地支暗拱;
+										if(winfo.地支暗拱.length>0 && winfo.地支三合.length>0){
+											地支暗拱=[];
+											$.each(winfo.地支暗拱,function(k,v){
+												var _chk=v[1].split('');
+												var _chk_count=0;
+												$.each(_chk,function(kk,vv){
+													if(winfo.地支三合[0][1].indexOf(vv)>-1){
+														_chk_count++;
+													}
+												});
+												if(_chk_count==_chk.length){
+													/*已经有包含这个半合的三合了,不计算这个半合*/
+												}else{
+													地支暗拱.push(v);
+												}
+											});
+										}
+										if(地支暗拱.length>0){
+											str='';
+											s_num=0;
+											var check_5e={};
+											$.each(地支暗拱,function(k,v){
+												str+=''+v[1]+" \r\n 暗拱:"+v[0][1]+v[0][0]+" \r\n";
+												check_5e[v[0][0]]=1;
+											});
+											if(obj_length(check_5e)==1){
+												s_num=五行[地支暗拱[0][0][0]];
+											}
+											if(obj_length(check_5e)>0){
+												series[s_num].markPoint.data.push({
+													name:str,
+													xAxis:key,
+													yAxis:pos
+												});
+											}
+										}
+										break;
+										
+									case '地支半合':
+										var 地支半合=winfo.地支半合;
+										if(winfo.地支半合.length>0 && winfo.地支三合.length>0){
+											地支半合=[];
+											$.each(winfo.地支半合,function(k,v){
+												var _chk=v[1].split('');
+												var _chk_count=0;
+												$.each(_chk,function(kk,vv){
+													if(winfo.地支三合[0][1].indexOf(vv)>-1){
+														_chk_count++;
+													}
+												});
+												if(_chk_count==_chk.length){
+													/*已经有包含这个半合的三合了,不计算这个半合*/
+												}else{
+													地支半合.push(v);
+												}
+											});
+										}
+										if(地支半合.length>0){
+											str='';
+											s_num=0;
+											var check_5e={};
+											$.each(地支半合,function(k,v){
+												str+=''+v[1]+" \r\n 半合 "+v[0]+" \r\n ";
+												check_5e[v[0][0]]=1;
+											});
+											if(obj_length(check_5e)==1){
+												s_num=五行[地支半合[0][0][0]];
+											}
+
+											if(obj_length(check_5e)>0){
+												series[s_num].markPoint.data.push({
+													name:str,
+													xAxis:key,
+													yAxis:pos
+												});
+											}
+										}
+										break;
+									case '地支六合':
+										if(winfo.地支六合.length>0){
+											str='';
+											s_num=0;
+											var check_5e={};
+											$.each(winfo.地支六合,function(k,v){
+												str+=''+v[1]+' 合 '+v[0]+" \r\n ";
+												check_5e[v[0][0]]=1;
+											});
+											if(obj_length(check_5e)==1){
+												s_num=五行[winfo.地支六合[0][0][0]];
+											}
+											series[s_num].markPoint.data.push({
+												name:"六合:\r\n "+str,
+												xAxis:key,
+												yAxis:pos
+											});
+										}
+										break;
                                     case '地支相冲':
                                         if(winfo.地支相冲.length>0){
                                             str='';
                                             $.each(winfo.地支相冲,function(k,v){
                                                 str+=v[0][0]+'冲('+v[1]+')'+" \r\n ";
                                             });
-                                            series[6].markPoint.data.push({
+                                            series[5].markPoint.data.push({
                                                 name:str,
                                                 xAxis:key,
-                                                yAxis:pos
+                                                yAxis:pos,
+												itemStyle:{
+													normal:{
+														color:'#FF34B3'
+													}
+												}
                                             });
                                         }
                                         break;
@@ -1410,184 +1510,91 @@
                             var s_num=0;
 
                             if(calc_param.show_st_and_br){
+							
+								var z3_xj=liunian['日柱凶吉'];
+								if(z3_xj){
+									series[5].markPoint.data.push({
+										name:z3_xj[0]+"\r\n"+z3_xj[1],
+										xAxis:key,
+										yAxis:-4*pos_step_length,
+										symbolSize:20,
+										itemStyle:{
+											normal:{
+												color:z3_xj[0]=='吉'?'#00FF00':'#FF0000'
+											}
+										}
+									});
+								}
                                 s_num=五行[liunian['日柱纳音'][0]];
                                 series[s_num].markPoint.data.push({
                                     name:liunian['日干']+liunian['日支']+"\r\n"+liunian['日柱纳音'][1],
                                     xAxis:key,
-                                    yAxis:450
+                                    yAxis:-5*pos_step_length
                                 });
                                 s_num=五行[liunian['时柱纳音'][0]];
                                 series[s_num].markPoint.data.push({
                                     name:liunian['时干']+liunian['时支']+"\r\n"+liunian['时柱纳音'][1],
                                     xAxis:key,
-                                    yAxis:360
+                                    yAxis:-6*pos_step_length
                                 });
-								
 								var z4_xj=liunian['时柱凶吉'];
-								series[6].markPoint.data.push({
-									name:z4_xj[0]+':'+z4_xj[1],
-									xAxis:key,
-									yAxis:300,
-									itemStyle:{
-										color:'#FF0000'
-									}
-								});
+								if(z4_xj){
+									series[5].markPoint.data.push({
+										name:z4_xj[0]+"\r\n"+z4_xj[1],
+										xAxis:key,
+										yAxis:-7*pos_step_length,
+										symbol:'circle',
+										symbolSize:20,
+										itemStyle:{
+											normal:{
+												color:z4_xj[0]=='吉'?'#00FF00':'#FF0000'
+											}
+										}
+									});
+								}
+								
                             }
 
-                            var chk_5e=liunian['同五行'] || {};
-                            $.each(chk_5e,function(kk,vv){
-                                if(vv.length>2){
-                                    s_num=五行[kk];
-                                    series[s_num].markPoint.data.push({
-                                        name:vv.length+"字同五行: \r \n"+vv,
-                                        xAxis:key,
-                                        yAxis:600
-                                    });
-                                }
-                            });
-
+                         
+							add_markpoint(liunian,'同五行',3);
+							
                             if(calc_param.only_show_compare_relation){
                                 var 额外效果=winfo.额外效果;
-                                add_markpoint(额外效果,'天干相冲',800);
+                                add_markpoint(额外效果,'天干相冲',1);
 
-                                add_markpoint(额外效果,'天干相合',700);
+                                add_markpoint(额外效果,'天干相合',2);
 
-                                add_markpoint(额外效果,'地支三合',100);
+                                add_markpoint(额外效果,'地支三合',8);
 
-                                add_markpoint(额外效果,'地支相冲',-400);
+                                add_markpoint(额外效果,'地支相冲',12);
                             }
                             if(!calc_param.only_show_compare_relation){
                                 /*天干部分*/
 
-                                add_markpoint(liunian,'天干相冲',800);
+                                add_markpoint(liunian,'天干相冲',1);
 
-                                add_markpoint(liunian,'天干相合',700);
+                                add_markpoint(liunian,'天干相合',2);
 
 
                                 /*地支部分*/
                                 var sanhui;
                                 var sanhe;
 
-                                add_markpoint(liunian,'地支三会',200);
+                                add_markpoint(liunian,'地支三会',7);
 
-                                add_markpoint(liunian,'地支三合',100);
+                                add_markpoint(liunian,'地支三合',8);
 
-
-                                if(liunian.地支暗会.length>0){
-                                    str='';
-                                    s_num=0;
-                                    var check_5e={};
-                                    $.each(liunian.地支暗会,function(k,v){
-                                        str+=''+v[1]+' : '+v[0][1]+v[0][0]+" \r\n ";
-                                        check_5e[v[0][0]]=1;
-                                    });
-                                    if(obj_length(check_5e)==1){
-                                        s_num=五行[liunian.地支暗会[0][0][0]];
-                                    }
-                                    series[s_num].markPoint.data.push({
-                                        name:"暗会:\r\n "+str,
-                                        xAxis:key,
-                                        yAxis:0
-                                    });
-                                }
-                                /*检查暗拱*/
-                                var 地支暗拱=liunian.地支暗拱;
-                                if(liunian.地支暗拱.length>0 && liunian.地支三合.length>0){
-                                    地支暗拱=[];
-                                    $.each(liunian.地支暗拱,function(k,v){
-                                        var _chk=v[1].split('');
-                                        var _chk_count=0;
-                                        $.each(_chk,function(kk,vv){
-                                            if(liunian.地支三合[0][1].indexOf(vv)>-1){
-                                                _chk_count++;
-                                            }
-                                        });
-                                        if(_chk_count==_chk.length){
-                                            /*已经有包含这个半合的三合了,不计算这个半合*/
-                                        }else{
-                                            地支暗拱.push(v);
-                                        }
-                                    });
-                                }
-                                if(地支暗拱.length>0){
-                                    str='';
-                                    s_num=0;
-                                    var check_5e={};
-                                    $.each(地支暗拱,function(k,v){
-                                        str+=''+v[1]+" \r\n 暗拱:"+v[0][1]+v[0][0]+" \r\n";
-                                        check_5e[v[0][0]]=1;
-                                    });
-                                    if(obj_length(check_5e)==1){
-                                        s_num=五行[地支暗拱[0][0][0]];
-                                    }
-                                    if(obj_length(check_5e)>0){
-                                        series[s_num].markPoint.data.push({
-                                            name:str,
-                                            xAxis:key,
-                                            yAxis:-100
-                                        });
-                                    }
-                                }
-                                /*检查半合*/
-                                var 地支半合=liunian.地支半合;
-                                if(liunian.地支半合.length>0 && liunian.地支三合.length>0){
-                                    地支半合=[];
-                                    $.each(liunian.地支半合,function(k,v){
-                                        var _chk=v[1].split('');
-                                        var _chk_count=0;
-                                        $.each(_chk,function(kk,vv){
-                                            if(liunian.地支三合[0][1].indexOf(vv)>-1){
-                                                _chk_count++;
-                                            }
-                                        });
-                                        if(_chk_count==_chk.length){
-                                            /*已经有包含这个半合的三合了,不计算这个半合*/
-                                        }else{
-                                            地支半合.push(v);
-                                        }
-                                    });
-                                }
-                                if(地支半合.length>0){
-                                    str='';
-                                    s_num=0;
-                                    var check_5e={};
-                                    $.each(地支半合,function(k,v){
-                                        str+=''+v[1]+" \r\n 半合 "+v[0]+" \r\n ";
-                                        check_5e[v[0][0]]=1;
-                                    });
-                                    if(obj_length(check_5e)==1){
-                                        s_num=五行[地支半合[0][0][0]];
-                                    }
-
-                                    if(obj_length(check_5e)>0){
-                                        series[s_num].markPoint.data.push({
-                                            name:str,
-                                            xAxis:key,
-                                            yAxis:-200
-                                        });
-                                    }
-                                }
-
-                                if(liunian.地支六合.length>0){
-                                    str='';
-                                    s_num=0;
-                                    var check_5e={};
-                                    $.each(liunian.地支六合,function(k,v){
-                                        str+=''+v[1]+' 合 '+v[0]+" \r\n ";
-                                        check_5e[v[0][0]]=1;
-                                    });
-                                    if(obj_length(check_5e)==1){
-                                        s_num=五行[liunian.地支六合[0][0][0]];
-                                    }
-                                    series[s_num].markPoint.data.push({
-                                        name:"六合:\r\n "+str,
-                                        xAxis:key,
-                                        yAxis:-300
-                                    });
-                                }
+								add_markpoint(liunian,'地支暗会',9);
+                                
+								add_markpoint(liunian,'地支暗拱',10);
+                                 
+                                add_markpoint(liunian,'地支半合',11);
+                                
+								add_markpoint(liunian,'地支六合',12);
+                                
 
                                 /*-----冲 刑 害-----*/
-                                add_markpoint(liunian,'地支相冲',-400);
+                                add_markpoint(liunian,'地支相冲',13);
 
                                 if(liunian.地支三刑.length>0){
                                     str='';
@@ -1597,7 +1604,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-500
+                                        yAxis:-14*pos_step_length
                                     });
                                 }
 
@@ -1609,7 +1616,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-600
+                                        yAxis:-15*pos_step_length
                                     });
                                 }
                                 if(liunian.地支相害.length>0){
@@ -1620,7 +1627,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-700
+                                        yAxis:-16*pos_step_length
                                     });
                                 }
                             }
@@ -1634,7 +1641,9 @@
                         xAxis: {
                             type: 'category',
                             boundaryGap: true,
-                            axisLine: {onZero: false},
+                            axisLine: {onZero: true},
+							position:'top',
+							offset:-300,
                             splitLine:{show:true},
                             data: xaxis
                         },
@@ -1717,7 +1726,7 @@
         },
         yAxis: {
             type: 'value',
-            min:-700
+            min:-5000
         },
         series:[]
     });
