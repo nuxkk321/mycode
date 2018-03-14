@@ -325,6 +325,17 @@
                                 显示日时天干地支:
                                 <input type="checkbox" id="show_st_and_br" value="1" checked='checked'/>
                             </label>
+							显示方式:
+							<div>
+								<label>
+									普通
+									<input type="radio" name="st_br_show_type" value="common" checked='checked'/>
+								</label>
+								<label>
+									纳音
+									<input type="radio" name="st_br_show_type" value="nayin"/>
+								</label>
+							</div>
                         </td>
                     </tr>
 
@@ -528,6 +539,7 @@
             },
             calc_dynamic_effect:$('#calc_dynamic_effect').is(':checked'),
             show_st_and_br:$('#show_st_and_br').is(':checked'),
+			st_br_show_type:$('input[name="st_br_show_type"]:checked').val(),
             compare_by_input:$('#compare_by_input').is(':checked'),
             only_show_compare_relation:$('#only_show_compare_relation').is(':checked')
         };
@@ -1088,7 +1100,9 @@
                     //    xAxis: 100
                     //});
                     var calc_length=$('#calc_length').val();
+					function set_markpoint(){
 					
+					}
                     $.each(word_info_list,function(k,calc_re){
                         if(calc_length=='d'){
 
@@ -1121,10 +1135,7 @@
                             $.each(count_5e,function(kk,vv){
                                 count_5e[kk]=parseFloat(vv.toFixed(2))+150;
                             });
-							var cch=winfo.时干+winfo.时支;
-							if(cch=='壬寅'){
-								console.log(dated[5],winfo.日干+winfo.日支,winfo.日柱纳音);
-							}
+							 
 						
                             var dbclick_data=arraySelect(
                                     '年干,年支,' +
@@ -1510,7 +1521,6 @@
                             var s_num=0;
 
                             if(calc_param.show_st_and_br){
-							
 								var z3_xj=liunian['日柱凶吉'];
 								if(z3_xj){
 									series[5].markPoint.data.push({
@@ -1525,18 +1535,6 @@
 										}
 									});
 								}
-                                s_num=五行[liunian['日柱纳音'][0]];
-                                series[s_num].markPoint.data.push({
-                                    name:liunian['日干']+liunian['日支']+"\r\n"+liunian['日柱纳音'][1],
-                                    xAxis:key,
-                                    yAxis:-5*pos_step_length
-                                });
-                                s_num=五行[liunian['时柱纳音'][0]];
-                                series[s_num].markPoint.data.push({
-                                    name:liunian['时干']+liunian['时支']+"\r\n"+liunian['时柱纳音'][1],
-                                    xAxis:key,
-                                    yAxis:-6*pos_step_length
-                                });
 								var z4_xj=liunian['时柱凶吉'];
 								if(z4_xj){
 									series[5].markPoint.data.push({
@@ -1550,6 +1548,58 @@
 												color:z4_xj[0]=='吉'?'#00FF00':'#FF0000'
 											}
 										}
+									});
+								}
+								
+								
+								if(calc_param.st_br_show_type=='nayin'){
+									s_num=五行[liunian['日柱纳音'][0]];
+									series[s_num].markPoint.data.push({
+										name:liunian['日干']+liunian['日支']+"\r\n"+liunian['日柱纳音'][1],
+										xAxis:key,
+										yAxis:-5*pos_step_length
+									});
+									s_num=五行[liunian['时柱纳音'][0]];
+									series[s_num].markPoint.data.push({
+										name:liunian['时干']+liunian['时支']+"\r\n"+liunian['时柱纳音'][1],
+										xAxis:key,
+										yAxis:-6*pos_step_length
+									});
+								}else{
+									console.log(3213123,liunian);
+									s_num=五行[liunian['日干五行'][1]];
+									series[s_num].markPoint.data.push({
+										name:liunian['日干'],
+										symbol:'roundRect',
+										symbolSize:14,
+										xAxis:key,
+										yAxis:-4.7*pos_step_length
+									});
+									
+									s_num=五行[liunian['日支五行'][1]];
+									series[s_num].markPoint.data.push({
+										name:liunian['日支'],
+										symbol:'roundRect',
+										symbolSize:14,
+										xAxis:key,
+										yAxis:-5.2*pos_step_length
+									});
+									
+									s_num=五行[liunian['时干五行'][1]];
+									series[s_num].markPoint.data.push({
+										name:liunian['时干'],
+										symbol:'roundRect',
+										symbolSize:14,
+										xAxis:key,
+										yAxis:-5.7*pos_step_length
+									});
+									s_num=五行[liunian['时支五行'][1]];
+									series[s_num].markPoint.data.push({
+										name:liunian['时支'],
+										symbol:'roundRect',
+										symbolSize:14,
+										xAxis:key,
+										yAxis:-6.2*pos_step_length
 									});
 								}
 								
