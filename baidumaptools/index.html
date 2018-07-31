@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title> </title>
+    <style type="text/css">
+        body, html {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            min-width: 500px;
+        }
+
+        body {
+            background-color: black;
+            font-size: 10pt;
+            text-shadow: 0px 1px 0px rgb(40, 40, 40);
+        }
+
+        a { color: #ccc; text-decoration: none; }
+        a:hover { color: #FF3B03; }
+
+        .force_wrap{word-break:break-all}
+ 
+    </style>
+</head>
+<body >
+    
+    <div id="map_box">
+		
+		
+    </div>
+	<div id="itemResult">
+		
+		
+    </div>
+</body>
+ 
+<script type="text/javascript" src='./js/jquery-1.12.4.min.js'></script>
+<script type="text/javascript" src='https://api.map.baidu.com/api?v=3.0&ak=GED01PwdCOTt84Ic0Gfo2kVZuZ0in5cd&callback=bd_map_init'></script>
+
+<script>
+    function bd_map_init(){
+		var wHeight = $(window).height();
+		var mainHeight = wHeight - 110;
+		$("#map_box").css('height', mainHeight);
+		
+		var busutil = new BMap.BusLineSearch(
+			"武汉", 
+			{
+				renderOptions: {panel: "itemResult"},
+				onGetBusListComplete: function (buslist) {           
+					var lineNameList = buslist.KA;
+					var html = [];
+					for (var i in lineNameList) {
+						//为每一项添加点击事件
+						html.push('<li><a href="javascript:void(0)" onclick="subgo(' + i + ' )">' + lineNameList[i].name +
+							'</a></li>');
+					}
+					var l_result = document.getElementById("l-result");
+					l_result.innerHTML = '<ul>' + html.join('') + '</ul>';
+				}
+			}
+		);
+		        
+
+			
+		var map = new BMap.Map("map_box",{mapType: BMAP_HYBRID_MAP}); 
+		
+		map.enableScrollWheelZoom();
+		map.centerAndZoom(new BMap.Point(base_data[0]['lng'],base_data[0]['lat']), 11);
+
+		var data_info = [
+			[116.417854,39.921988,"地址：北京市东城区王府井大街88号乐天银泰百货八层"],
+			[116.406605,39.921585,"地址：北京市东城区东华门大街"],
+			[116.412222,39.912345,"地址：北京市东城区正义路甲5号"]
+		];
+		var opts = {
+			width : 250,     // 信息窗口宽度
+			height: 80,     // 信息窗口高度
+			title : "信息窗口" , // 信息窗口标题
+			enableMessage:true//设置允许信息窗发送短息
+		};
+		for(var x in base_data){
+			// 创建标注
+			var marker = new BMap.Marker(
+				new BMap.Point(
+					base_data[x]['lng'],
+					base_data[x]['lat']
+				)
+			);
+
+			var content =
+					'基地名称:'+base_data[x]['name']+"<br/>"+
+					'地址:'+base_data[x]['address'];
+			map.addOverlay(marker);               // 将标注添加到地图中
+			addClickHandler(content,marker);
+		}
+
+		function addClickHandler(content,marker){
+			marker.addEventListener("click",function(e){
+				openInfo(content,e)}
+			);
+		}
+		function openInfo(content,e){
+			var p = e.target;
+			var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
+			var infoWindow = new BMap.InfoWindow(content,opts);  // 创建信息窗口对象 
+			map.openInfoWindow(infoWindow,point); //开启信息窗口
+		}
+	}
+</script>
+
+</html>
