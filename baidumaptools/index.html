@@ -51,20 +51,13 @@
 			{
 				renderOptions: {panel: "itemResult"},
 				onGetBusListComplete: function (buslist) {           
-					var lineNameList = buslist.KA;
-					var html = [];
-					for (var i in lineNameList) {
-						//为每一项添加点击事件
-						html.push('<li><a href="javascript:void(0)" onclick="subgo(' + i + ' )">' + lineNameList[i].name +
-							'</a></li>');
-					}
-					var l_result = document.getElementById("l-result");
-					l_result.innerHTML = '<ul>' + html.join('') + '</ul>';
+					var line_num= buslist.getNumBusList();
+					console.log(432432,line_num);
 				}
 			}
 		);
 		        
-
+		busutil.getBusList(busNo);
 			
 		var map = new BMap.Map("map_box",{mapType: BMAP_HYBRID_MAP}); 
 		
