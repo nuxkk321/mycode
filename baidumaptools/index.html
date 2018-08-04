@@ -22,87 +22,334 @@
         a:hover { color: #FF3B03; }
 
         .force_wrap{word-break:break-all}
- 
+
+        #top_box{
+            overflow: hidden;
+        }
+        #map_box{
+            position: relative;
+            width: auto;
+            height:100%;
+            box-sizing: border-box;
+            overflow: auto;
+        }
+
+        #config_box {
+            width:245px;
+            height:100%;
+            float:left;
+            z-index: 10;
+            position: relative;
+            background-color: rgba(30, 30, 30, 0.6);
+            font-family: sans-serif;
+            padding: 0;
+            margin: 0;
+            border: 2px solid rgba(20, 20, 20, 0.6);
+            color: #FF3B03;
+            text-shadow: 0px 1px 0px rgb(40, 40, 40);
+            overflow-y:scroll;
+            /* Make text non-selecatble */
+            user-select: none;
+            -moz-user-select: none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+            -o-user-select: none;
+        }
+
+        #config_box table {
+            color: #ccc;
+            padding: 5px;
+        }
+
+        #config_box input {
+            color: #ccc;
+            outline: none;
+            background-color: rgba(48,48,48,0.3);
+            border-width: 1px;
+            border-color: #444;
+        }
+
+        #config_box select {
+            border: #444 1px solid;
+            color: #ccc;
+            outline: none;
+            background-color: #333;
+            -webkit-appearance: none;
+            font-size: 10pt;
+        }
+
+        #config_box .textInput {
+            text-align: right;
+            background-color: transparent;
+            border: #444 1px solid;
+            font-size: 10pt;
+        }
+
+        #itemResult{
+            height:105px;
+            margin:0;
+            padding:5px 5px 0 5px;
+            overflow-y: scroll;
+            overflow-x:hidden;
+        }
+
     </style>
 </head>
 <body >
-    
-    <div id="map_box">
-		
-		
+<div id="top_box">
+    <div id="config_box">
+        <form id="settingsForm" action="javascript:draw(getColorPicker(), getSamples());">
+            <table>
+                <tr>
+                    <td >
+                        搜公交站:
+                    </td>
+                    <td >
+                        <input class="textInput" size="12" type="text" id="center_coord_input" />
+                    </td>
+                    <td>
+                        <input type="button" id="center_search_btn" value="搜索" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        起点坐标:
+                    </td>
+                    <td>
+                        <input class="textInput" size="12" type="text" id="start_coord_input" />
+                    </td>
+                    <td>
+                        <input type="button" id="start_search_btn" value="搜索" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        终点坐标:
+                    </td>
+                    <td>
+                        <input class="textInput" size="12" type="text" id="end_coord_input" />
+                    </td>
+                    <td >
+                        <input type="button" id="end_search_btn" value="搜索" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        换乘间隔
+                    </td>
+                    <td>
+                        <input class="textInput" size="4" type="text" id="switch_intval" value="0" />(米)
+                    </td>
+                </tr>
+                <tr>
+                    <td>开始计算</td>
+                    <td>
+                        <input type="button" id="calc_next" value="calc_next" />
+                    </td>
+                </tr>
+            </table>
+        </form>
+
+        <hr/>
+        <div id="searchlist">
+
+        </div>
     </div>
-	<div id="itemResult">
-		
-		
-    </div>
+
+    <div id="map_box"></div>
+</div>
+<div id="itemResult">
+</div>
 </body>
  
 <script type="text/javascript" src='./js/jquery-1.12.4.min.js'></script>
 <script type="text/javascript" src='https://api.map.baidu.com/api?v=3.0&ak=GED01PwdCOTt84Ic0Gfo2kVZuZ0in5cd&callback=bd_map_init'></script>
 
 <script>
+    var str_pad=function(input,pad_length,pad_string,pad_type){
+        input=String(input);
+        var len = input.length;
+        while(len < pad_length) {
+            if(pad_type){
+                input += pad_string;
+            }else{
+                input = pad_string + input;
+            }
+            len++;
+        }
+        return input;
+    };
+
+    var map,local_search,bus_search;
+    var circle_start;
+    var current_site;
+    var start_pt;
+    function search_point_local(kw){
+        var coord=$('#center_coord_input').val().split(',');
+        console.log(42314324,coord);
+        var mPoint = new BMap.Point(coord[0],coord[1]);
+
+        if(circle_start) map.removeOverlay(circle_start);
+        circle_start = new BMap.Circle(mPoint,1000,{fillColor:"blue", strokeWeight: 1 ,fillOpacity: 0.3, strokeOpacity: 0.3});
+        map.addOverlay(circle_start);
+
+        if(!kw) kw='公交';
+        local_search.searchNearby(kw,mPoint,1000);
+
+    }
+    function search_point_bus(num){
+        if(!current_site){
+            alert('请先选择一个公交车站');
+            return;
+        }
+        var bus_num_list=current_site.address.split(';');
+        if(num==1){
+            /*起点*/
+        }else{
+            /*终点*/
+        }
+        console.log('当前站有'+bus_num_list.length+'个公交');
+        for(var x in bus_num_list){
+            var bus_no=bus_num_list[x];
+            console.log('开始搜索，公交车号：',bus_no);
+            bus_search.getBusList(bus_no);
+        }
+    }
+    var busline_list={};
+    var busline_count=0;
+    function add_busline(busline){
+        busline_count++;
+
+        var name=busline.name;
+        var path_arr=busline.getPath();
+
+        var color=(busline_count*7).toString(16);
+        color=str_pad(color,3,'F');
+        console.log('生成的路线颜色:',color);
+
+        var line_obj = new BMap.Polyline(
+            path_arr,
+            {
+                strokeStyle:'dashed',
+                strokeColor:"#"+color,
+                strokeWeight:2,
+                strokeOpacity:1
+            }
+        );   //创建折线
+        map.addOverlay(line_obj); //加入地图中
+
+        busline_list[name]={
+            path_arr:path_arr,
+            line_obj:line_obj
+        }
+    }
+    function clear_busline(){
+        for(var x in busline_list){
+            map.removeOverlay(busline_list[x].line_obj); //加入地图中
+
+        }
+        busline_list={};
+        busline_count=0;
+    }
     function bd_map_init(){
 		var wHeight = $(window).height();
 		var mainHeight = wHeight - 110;
-		$("#map_box").css('height', mainHeight);
-		
-		var busutil = new BMap.BusLineSearch(
-			"武汉", 
-			{
-				renderOptions: {panel: "itemResult"},
-				onGetBusListComplete: function (buslist) {           
-					var line_num= buslist.getNumBusList();
-					console.log(432432,line_num);
-				}
-			}
-		);
-		        
-		busutil.getBusList(busNo);
+		$("#top_box").css('height', mainHeight);
+
+
+        map = new BMap.Map("map_box",{mapType: BMAP_HYBRID_MAP});
+        map.enableScrollWheelZoom();
+        map.disableDoubleClickZoom();
+        map.centerAndZoom(new BMap.Point(114.297213,30.598716), 14);
+
+
+//        map.addEventListener("click", function(e){
+//            //通过点击百度地图，可以获取到对应的point, 由point的lng、lat属性就可以获取对应的经度纬度
+//            var pt = e.point;
+//            $("#start_coord_input").val(pt.lng+','+pt.lat);
+//        });
+        map.addEventListener("dblclick", function(e){
+            clear_busline();
+            var pt = e.point;
+            $("#center_coord_input").val(pt.lng+','+pt.lat);
+            $('#center_search_btn').click();
+        });
+
+
+
+
+        local_search = new BMap.LocalSearch(
+            map,
+            {
+                renderOptions: {
+                    map: map,
+                    panel: "searchlist",
+                    autoViewport: false //检索结束后是否自动调整视野
+                },
+                onMarkersSet:function(marker_list){
+                    for(var x in marker_list){
+                    (function(k,v){
+
+                        v.marker.addEventListener('click',function(e){
+                            if(v.type==1){
+                                current_site=v;
+                                $("#start_coord_input").val(v.point.lng+','+v.point.lat);
+                            }
+                        });
+                        v.marker.addEventListener('dblclick',function(e){
+                            if(v.type==1){
+                                current_site=v;
+                                $("#start_coord_input").val(v.point.lng+','+v.point.lat);
+                                $('#start_search_btn').click();
+                            }
+                        });
+
+                    })(x,marker_list[x]);
+                    }
+                }
+            }
+        );
+
+        bus_search = new BMap.BusLineSearch(
+            map,
+            {
+                renderOptions: {
+//                    map: map, //如果设置了该参数，则将搜索到的公交路线自动添加到这个map中
+                    panel: "itemResult"
+                },
+                onGetBusListComplete: function (buslist) {
+                    var line_num= buslist.getNumBusList();
+                    var l_item=buslist.getBusListItem(0);
+                    console.log(432432,l_item);
+                    bus_search.getBusLine(l_item);
+                },
+                onGetBusLineComplete:add_busline
+            }
+        );
+
 			
-		var map = new BMap.Map("map_box",{mapType: BMAP_HYBRID_MAP}); 
-		
-		map.enableScrollWheelZoom();
-		map.centerAndZoom(new BMap.Point(base_data[0]['lng'],base_data[0]['lat']), 11);
 
-		var data_info = [
-			[116.417854,39.921988,"地址：北京市东城区王府井大街88号乐天银泰百货八层"],
-			[116.406605,39.921585,"地址：北京市东城区东华门大街"],
-			[116.412222,39.912345,"地址：北京市东城区正义路甲5号"]
-		];
-		var opts = {
-			width : 250,     // 信息窗口宽度
-			height: 80,     // 信息窗口高度
-			title : "信息窗口" , // 信息窗口标题
-			enableMessage:true//设置允许信息窗发送短息
-		};
-		for(var x in base_data){
-			// 创建标注
-			var marker = new BMap.Marker(
-				new BMap.Point(
-					base_data[x]['lng'],
-					base_data[x]['lat']
-				)
-			);
 
-			var content =
-					'基地名称:'+base_data[x]['name']+"<br/>"+
-					'地址:'+base_data[x]['address'];
-			map.addOverlay(marker);               // 将标注添加到地图中
-			addClickHandler(content,marker);
-		}
 
-		function addClickHandler(content,marker){
-			marker.addEventListener("click",function(e){
-				openInfo(content,e)}
-			);
-		}
-		function openInfo(content,e){
-			var p = e.target;
-			var point = new BMap.Point(p.getPosition().lng, p.getPosition().lat);
-			var infoWindow = new BMap.InfoWindow(content,opts);  // 创建信息窗口对象 
-			map.openInfoWindow(infoWindow,point); //开启信息窗口
-		}
+
+        $(function(){
+
+
+            $('#center_search_btn').click(function(){
+                search_point_local();
+            });
+
+            $('#start_search_btn').click(function(){
+                search_point_bus(1,'公交');
+            });
+            $('#end_search_btn').click(function(){
+                search_point_bus(2,'公交');
+            });
+        });
 	}
+
+
+
 </script>
 
 </html>
