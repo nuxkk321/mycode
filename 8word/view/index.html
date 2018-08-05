@@ -49,7 +49,7 @@
         }
 
 
-        #description {
+        #config_box {
             float:left;
             z-index: 10;
             position: relative;
@@ -70,11 +70,11 @@
             -o-user-select: none;
         }
 
-        #description table {
+        #config_box table {
             color: #ccc;
         }
 
-        #description input {
+        #config_box input {
             color: #ccc;
             outline: none;
             background-color: rgba(48,48,48,0.3);
@@ -82,12 +82,19 @@
             border-color: #444;
         }
 
-        #description select {
+        #config_box select {
             border: #444 1px solid;
             color: #ccc;
             outline: none;
             background-color: #333;
             -webkit-appearance: none;
+            font-size: 10pt;
+        }
+
+        #config_box .textInput {
+            text-align: right;
+            background-color: transparent;
+            border: #444 1px solid;
             font-size: 10pt;
         }
 
@@ -101,13 +108,6 @@
 
         .headerText {
             color: #666;
-        }
-
-        #description .textInput {
-            text-align: right;
-            background-color: transparent;
-            border: #444 1px solid;
-            font-size: 10pt;
         }
 
         hr {
@@ -133,6 +133,7 @@
         #c_5{
             height:170px;
         }
+		.summary_text{padding-top:100px}
         .next_btn,.prev_btn{
             position: absolute; left: 0; top: 0; right: 0; bottom: 0;margin:auto;
             width:50px;height:50px;border:1px solid blue;cursor: pointer
@@ -151,7 +152,7 @@
     </style>
 </head>
 <body >
-    <div id="description">
+    <div id="config_box">
         <form id="settingsForm" action="javascript:draw(getColorPicker(), getSamples());">
             <table>
                 <thead>
@@ -388,6 +389,7 @@
                     <div class='next_btn'>
                         >>>
                     </div>
+					<div class="summary_text"></div>
                 </td>
             </tr>
         </table>
@@ -1204,7 +1206,7 @@
 
                                     /*第7行,此柱天干总计*/
                                     cell_str+='<tr><td colspan="4">' +
-                                    '总计:'+parseFloat(winfo[part+'干强弱'].综合得分).toFixed(1);
+                                    '总计:'+winfo[part+'干']+':'+parseFloat(winfo[part+'干强弱'].综合得分).toFixed(1);
                                     if(winfo[part+'干正根数量']<1){
                                         cell_str+='(无正根)'
                                     }
@@ -1319,13 +1321,22 @@
                                     case '天干相冲':
                                         if(winfo.天干相冲.length>0){
                                             str='';
+                                            var sp_style={};
                                             $.each(winfo.天干相冲,function(k,v){
-                                                str+=v[0][0]+' 相冲 ('+v[1]+')'+" \r\n ";
+                                                str+=v[0][0]+"冲\r\n("+v[2]+')';
+                                                if(v[2]=='正冲' || v[2]=='交叉'){
+                                                    sp_style={
+                                                        normal:{
+                                                            color:'#FF34B3'
+                                                        }
+                                                    };
+                                                }
                                             });
                                             series[5].markPoint.data.push({
                                                 name:str,
                                                 xAxis:key,
-                                                yAxis:pos
+                                                yAxis:pos,
+                                                itemStyle:sp_style
                                             });
                                         }
                                         break;
@@ -1346,16 +1357,48 @@
                                             });
                                         }
                                         break;
-									case '同五行':
-									   var chk_5e=winfo['同五行'] || {};
+									case '天干同五行':
+										var chk_5e=array_get(winfo,'同五行.干',{});
 										$.each(chk_5e,function(kk,vv){
 											if(vv.length>2){
 												s_num=五行[kk];
 												series[s_num].markPoint.data.push({
-													name:vv.length+"字同五行: \r \n"+vv,
+													name:vv.length+"同: \r \n"+vv,
 													xAxis:key,
 													yAxis:pos
 												});
+											}
+										});
+										break;
+									case '地支同五行':
+										var chk_5e=array_get(winfo,'同五行.支',{});
+										var pdata={
+											xAxis:key,
+											yAxis:pos,
+										};
+										$.each(chk_5e,function(kk,vv){
+											if(vv.length>2){
+												s_num=五行[kk];
+												var str=vv.length+"同: \r\n";
+												if(vv.length>3){
+													var chk_unique={};
+													chk_unique[winfo.年支]=1;
+													chk_unique[winfo.月支]=1;
+													chk_unique[winfo.日支]=1;
+													chk_unique[winfo.时支]=1;
+													if(obj_length(chk_unique)==4){
+														str="四\r\n土\r\n俱\r\n全";
+														pdata.itemStyle={
+															normal:{
+																color:'#FF34B3'
+															}
+														};
+													}
+												}else{
+													str+=vv;
+												}
+												pdata.name=str;
+												series[s_num].markPoint.data.push(pdata);
 											}
 										});
 										break;
@@ -1566,14 +1609,13 @@
 										yAxis:-6*pos_step_length
 									});
 								}else{
-									console.log(3213123,liunian);
 									s_num=五行[liunian['日干五行'][1]];
 									series[s_num].markPoint.data.push({
 										name:liunian['日干'],
 										symbol:'roundRect',
 										symbolSize:14,
 										xAxis:key,
-										yAxis:-4.7*pos_step_length
+										yAxis:-4.8*pos_step_length
 									});
 									
 									s_num=五行[liunian['日支五行'][1]];
@@ -1582,7 +1624,7 @@
 										symbol:'roundRect',
 										symbolSize:14,
 										xAxis:key,
-										yAxis:-5.2*pos_step_length
+										yAxis:-5.3*pos_step_length
 									});
 									
 									s_num=五行[liunian['时干五行'][1]];
@@ -1591,7 +1633,7 @@
 										symbol:'roundRect',
 										symbolSize:14,
 										xAxis:key,
-										yAxis:-5.7*pos_step_length
+										yAxis:-5.8*pos_step_length
 									});
 									s_num=五行[liunian['时支五行'][1]];
 									series[s_num].markPoint.data.push({
@@ -1599,14 +1641,15 @@
 										symbol:'roundRect',
 										symbolSize:14,
 										xAxis:key,
-										yAxis:-6.2*pos_step_length
+										yAxis:-6.3*pos_step_length
 									});
 								}
 								
                             }
 
                          
-							add_markpoint(liunian,'同五行',3);
+							add_markpoint(liunian,'天干同五行',3);
+							add_markpoint(liunian,'地支同五行',8);
 							
                             if(calc_param.only_show_compare_relation){
                                 var 额外效果=winfo.额外效果;
@@ -1630,21 +1673,21 @@
                                 var sanhui;
                                 var sanhe;
 
-                                add_markpoint(liunian,'地支三会',7);
+                                add_markpoint(liunian,'地支三会',9);
 
-                                add_markpoint(liunian,'地支三合',8);
+                                add_markpoint(liunian,'地支三合',10);
 
-								add_markpoint(liunian,'地支暗会',9);
+								add_markpoint(liunian,'地支暗会',11);
                                 
-								add_markpoint(liunian,'地支暗拱',10);
+								add_markpoint(liunian,'地支暗拱',12);
                                  
-                                add_markpoint(liunian,'地支半合',11);
+                                add_markpoint(liunian,'地支半合',13);
                                 
-								add_markpoint(liunian,'地支六合',12);
+								add_markpoint(liunian,'地支六合',14);
                                 
 
                                 /*-----冲 刑 害-----*/
-                                add_markpoint(liunian,'地支相冲',13);
+                                add_markpoint(liunian,'地支相冲',15);
 
                                 if(liunian.地支三刑.length>0){
                                     str='';
@@ -1654,7 +1697,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-14*pos_step_length
+                                        yAxis:-16*pos_step_length
                                     });
                                 }
 
@@ -1666,7 +1709,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-15*pos_step_length
+                                        yAxis:-17*pos_step_length
                                     });
                                 }
                                 if(liunian.地支相害.length>0){
@@ -1677,7 +1720,7 @@
                                     series[5].markPoint.data.push({
                                         name:str,
                                         xAxis:key,
-                                        yAxis:-16*pos_step_length
+                                        yAxis:-18*pos_step_length
                                     });
                                 }
                             }
@@ -1743,6 +1786,17 @@
     var myChart = echarts.init(document.getElementById('main'));
     myChart.on('dblclick', function (params) {
         $('.prev_btn').click();
+		$('.summary_text').html(
+			params.value[2].年干+
+			params.value[2].月干+
+			params.value[2].日干+
+			params.value[2].时干+
+			'<br />'+
+			params.value[2].年支+
+			params.value[2].月支+
+			params.value[2].日支+
+			params.value[2].时支
+		);
         reload_input_time(params.value[2]);
         setTimeout(function(){
             $('#calc_now').click();

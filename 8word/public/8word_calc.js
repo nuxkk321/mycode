@@ -1,3 +1,31 @@
+/**
+ * 读取对象的指定属性
+ * @param obj
+ * @param keys
+ * @param default_value
+ * @returns {*}
+ */
+function array_get(obj,keys,default_value){
+    if(typeof(keys=='string') && keys.indexOf('.')>0) {
+        keys=keys.split('.');
+    }
+    if(typeof(keys)!='object'){
+        keys=[String(keys)];
+    }
+    var re=obj;
+    for(var k in keys){
+        if(!re) break;
+
+        var v=keys[k];
+        re=re[v];
+    }
+
+    if(typeof(re)=='undefined'){
+        re=default_value;
+    }
+    return re;
+}
+
 function arr_flip(arr){
     var re={};
     for(var i in arr){
@@ -117,11 +145,12 @@ var 十神评分={
 	'正印':1
 };
 var 天干相冲={
-    '甲庚':['甲庚'],
-    '乙辛':['乙辛'],
-    '丙壬':['丙壬'],
-    '丁癸':['丁癸']
+    '甲庚':['甲庚','寅申',0],
+    '乙辛':['乙辛','卯酉',0],
+    '丙壬':['丙壬','午子',0],
+    '丁癸':['丁癸','巳亥',0]
 };
+
 var 天干相合={
     '甲己':'土',
     '乙庚':'金',
@@ -751,13 +780,15 @@ function get_stems_10G(t,s){
 
     return 天干十神[relation][type]+notes;
 }
-function get_stems_relation(s1,s2){
+function get_stems_relation(s1,s2,cs){
     var re={};
     if(!s1 || !s2) return re;
 
     var asc=s1+s2,desc=s2+s1;
 
     re.冲=天干相冲[asc] || 天干相冲[desc];
+    if(re.冲) re.冲=JSON.parse(JSON.stringify(re.冲));
+    if(天干相冲[desc]) re.冲[2]=1;
 
     re.合=天干相合[asc] || 天干相合[desc];
 
@@ -773,7 +804,6 @@ function get_stems_relation2(s1,s2){
     var asc=s1+s2,desc=s2+s1;
 
     var 冲=天干相冲[asc] || 天干相冲[desc];
-
     if(冲){
         re+='<div>---相冲---</div>';
     }
@@ -1242,69 +1272,88 @@ var sb_calc={
             var next_z=t_arr[k+1];/*后一个*/
 
             var diff;
-
-
-
-            /*和前一个天干比较*/
-            if(prev_z){
-                diff=get_stems_relation(天干,zzz[prev_z+'干']);
-				
-            }
-            /*和后一个天干比较*/
-            if(next_z){
-                diff=get_stems_relation(天干,zzz[next_z+'干']);
-                if(diff.冲){
-                    zzz.天干相冲.push([diff.冲,v+next_z]);
-                }
-
-                if(diff.合){
-                    zzz.天干相合.push([diff.合,v+next_z]);
-                }
-
-                zzz[v+'干'+next_z+'干']=diff;
-            }
-
             var 地支强弱={生我:[],克我:[],我生:[],我克:[],刑:[],冲:[],害:[]};
-            /*和前一个地支比较*/
+
+
             if(prev_z){
-                diff=get_branches_relation(地支,zzz[prev_z+'支']);
-                if(diff.刑) 地支强弱.刑.push(diff.刑);
-                if(diff.冲) 地支强弱.冲.push(diff.冲);
-                if(diff.害) 地支强弱.害.push(diff.害);
-				
-				zzz[v+'柱凶吉']=get_xiongji(地支,zzz[prev_z+'支']);
-				
+                /*和前一个天干比较*/
+                var diff_st1=get_stems_relation(天干,zzz[prev_z+'干']);
+
+                /*和前一个地支比较*/
+                var diff_br1=get_branches_relation(地支,zzz[prev_z+'支']);
+                if(diff_br1.刑) 地支强弱.刑.push(diff_br1.刑);
+                if(diff_br1.冲) 地支强弱.冲.push(diff_br1.冲);
+                if(diff_br1.害) 地支强弱.害.push(diff_br1.害);
+
+                zzz[v+'柱凶吉']=get_xiongji(地支,zzz[prev_z+'支']);
+
             }
-            /*和后一个地支比较*/
+
             if(next_z){
-                diff=get_branches_relation(地支,zzz[next_z+'支']);
-                if(diff.刑){
-                    地支强弱.刑.push(diff.刑);
-                    zzz.地支相刑.push([diff.刑,v+next_z]);
+
+                /*和后一个天干比较*/
+                var diff_st=get_stems_relation(天干,zzz[next_z+'干']);
+                /*和后一个地支比较*/
+                var diff_br=get_branches_relation(地支,zzz[next_z+'支']);
+
+                if(diff_br.刑){
+                    地支强弱.刑.push(diff_br.刑);
+                    zzz.地支相刑.push([diff_br.刑,v+next_z]);
                 }
-                if(diff.冲){
-                    地支强弱.冲.push(diff.冲);
-                    zzz.地支相冲.push([diff.冲,v+next_z]);
+                if(diff_br.冲){
+                    地支强弱.冲.push(diff_br.冲);
+                    zzz.地支相冲.push([diff_br.冲,v+next_z]);
                 }
-                if(diff.害){
-                    地支强弱.害.push(diff.害);
-                    zzz.地支相害.push([diff.害,v+next_z]);
+                if(diff_br.害){
+                    地支强弱.害.push(diff_br.害);
+                    zzz.地支相害.push([diff_br.害,v+next_z]);
                 }
 
+                if(diff_br.六合){
+                    zzz.地支六合.push([diff_br.六合,v+next_z]);
+                }
+                if(diff_br.半合){
+                    zzz.地支半合.push([diff_br.半合,v+next_z]);
+                }
+                if(diff_br.暗拱){
+                    zzz.地支暗拱.push([diff_br.暗拱,v+next_z]);
+                }
+                if(diff_br.暗会){
+                    zzz.地支暗会.push([diff_br.暗会,v+next_z]);
+                }
+                zzz[v+'支'+next_z+'支']=diff_br;
 
-                if(diff.六合){
-                    zzz.地支六合.push([diff.六合,v+next_z]);
+
+                if(diff_st.冲){
+                    var st_info_冲=[diff_st.冲,v+next_z];
+                    if(diff_br.冲){
+                        /*只有特定地支的天干才算真正的相冲*/
+                        var str_冲=diff_st.冲[1];
+                        if(diff_st.冲[2]==1){
+                            str_冲=str_冲.split('').reverse().join('');
+                        }
+                        if(str_冲==地支+zzz[next_z+'支']){
+                            //console.log(9999,'正冲:',diff_st.冲);
+                            st_info_冲[2]='正冲';
+                        }else if(str_冲==zzz[next_z+'支']+地支){
+                            //console.log(8888,'交叉:',diff_st.冲,zzz);
+                            st_info_冲[2]='交叉';
+                        }else{
+                            st_info_冲[2]='假';
+                        }
+                        //console.log(123123,'天干的冲:',diff_st.冲,';地支:',diff_br.冲[0],';',zzz);
+                    }else{
+                        st_info_冲[2]='无';
+                    }
+                    zzz.天干相冲.push(st_info_冲);
+
                 }
-                if(diff.半合){
-                    zzz.地支半合.push([diff.半合,v+next_z]);
+
+                if(diff_st.合){
+                    zzz.天干相合.push([diff_st.合,v+next_z]);
                 }
-                if(diff.暗拱){
-                    zzz.地支暗拱.push([diff.暗拱,v+next_z]);
-                }
-                if(diff.暗会){
-                    zzz.地支暗会.push([diff.暗会,v+next_z]);
-                }
-                zzz[v+'支'+next_z+'支']=diff;
+
+                zzz[v+'干'+next_z+'干']=diff_st;
             }
 
             zzz[v+'干支关系']={};/*TODO::*/
@@ -1533,13 +1582,17 @@ var sb_calc={
         sb_calc.parse_br_relation(liunian);
 
         /*三字以上的同五行*/
-        var chk_5e={};
+        var collect_5e={'干':{},'支':{}};
         $.each(t_arr,function(k,v){
-            var tg_5e=zzz[v+'干五行'][1];
-            if(!chk_5e[tg_5e]) chk_5e[tg_5e]=[];
-            chk_5e[tg_5e].push(v);
+			$.each(collect_5e,function(t_key,collect_arr){
+				var _5e=zzz[v+t_key+'五行'][1];
+				if(!collect_arr[_5e]) collect_arr[_5e]=[];
+				collect_arr[_5e].push(v);
+			});
         });
-        zzz.同五行=chk_5e;
+        zzz.同五行=collect_5e;
+	 
+		
 
         /*其他的效果*/
         var 额外效果={};
