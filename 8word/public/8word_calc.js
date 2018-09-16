@@ -1074,7 +1074,7 @@ function get_lunar_month_node(year,cb){
 var lunar_month_start_point_list={
 
 };
-var sb_calc={
+var sb_calc_tools={
     start_date:'2000/01/01',
     start_stem_num:5,
     start_branche_num:7,
@@ -1122,10 +1122,10 @@ var sb_calc={
 
     },
     get_lunar_month:function(str,cb){
-        var date_arr=sb_calc.get_date_arr(str);
+        var date_arr=sb_calc_tools.get_date_arr(str);
         var year=date_arr[0];
 
-        sb_calc.get_lunar_month_data(year,function(err,split_info){
+        sb_calc_tools.get_lunar_month_data(year,function(err,split_info){
             if(err){
                 cb(err);
                 return ;
@@ -1176,19 +1176,19 @@ var sb_calc={
 
     },
     get_date_info:function(str,cb){
-        var date_arr=sb_calc.get_date_arr(str);
+        var date_arr=sb_calc_tools.get_date_arr(str);
 
         var timestamp=date_arr[4]/1000;/*当前时间戳的秒数*/
-        var timestamp_fix=new Date(sb_calc.start_date);/*开始计算的日期*/
+        var timestamp_fix=new Date(sb_calc_tools.start_date);/*开始计算的日期*/
         timestamp_fix=timestamp_fix.getTime()/1000;/*开始时间的秒数*/
 
         var timestamp_diff=timestamp-timestamp_fix;/*当前时间距离开始时间的秒数*/
         var day_count=parseInt(timestamp_diff/(3600*24));/*当前时间距离开始时间的天数*/
         /*日天干*/
-        var day_stem=day_count%10-sb_calc.start_stem_num;
+        var day_stem=day_count%10-sb_calc_tools.start_stem_num;
         day_stem=fix_num(day_stem,10);
         /*日地支*/
-        var day_branche=day_count%12-sb_calc.start_branche_num+2;
+        var day_branche=day_count%12-sb_calc_tools.start_branche_num+2;
         day_branche=fix_num(day_branche,12);
 
         /*时地支*/
@@ -1207,7 +1207,7 @@ var sb_calc={
         year_branche=fix_num(year_branche,12);
 
         /*获取农历月数*/
-        sb_calc.get_lunar_month(date_arr,function(err,lunar_month){
+        sb_calc_tools.get_lunar_month(date_arr,function(err,lunar_month){
             if(err){
                 cb(err);
                 return;
@@ -1395,7 +1395,7 @@ var sb_calc={
     calc_dynamic_effect_change:function(target_score,sef_score,relation,score){
         var change_val=0;
         var change_re={self:0,target:0};
-        var next_10G_rule=sb_calc.calc_dynamic_effect_rule[relation];
+        var next_10G_rule=sb_calc_tools.calc_dynamic_effect_rule[relation];
         //console.log(next_z+'干 是 '+pos+'干 的',relation);
         switch(relation){
             /*生泄 看力量小的一方*/
@@ -1578,8 +1578,8 @@ var sb_calc={
 
 
         /*具体细节的计算*/
-        sb_calc.parse_br_relation(zzz);
-        sb_calc.parse_br_relation(liunian);
+        sb_calc_tools.parse_br_relation(zzz);
+        sb_calc_tools.parse_br_relation(liunian);
 
         /*三字以上的同五行*/
         var collect_5e={'干':{},'支':{}};
@@ -1729,7 +1729,7 @@ var sb_calc={
                     var next_qr=liunian[target+'干强弱'];
                     var next_10G=liunian[pos+'干流年十神'][k+1][0];
 
-                    var change_re=sb_calc.calc_dynamic_effect_change(
+                    var change_re=sb_calc_tools.calc_dynamic_effect_change(
                         next_qr.综合得分,
                         cur_qr.综合得分,
                         next_10G,
@@ -1748,7 +1748,7 @@ var sb_calc={
                     var next_qr=zzz[pos+'干强弱'];
                     var next_10G=liunian[pos+'干命局十神'][k][0];
                     //console.log('流'+pos+' 干:',liunian[pos+'干'],'命局 '+pos+' 干:',zzz[pos+'干'],'流'+pos+' 干 看 命局 '+pos+' 干 为:',next_10G);
-                    var change_re=sb_calc.calc_dynamic_effect_change(
+                    var change_re=sb_calc_tools.calc_dynamic_effect_change(
                         next_qr.综合得分,
                         cur_qr.综合得分,
                         next_10G,
@@ -1770,7 +1770,7 @@ var sb_calc={
                 var next_qr=zzz[target+'干强弱'];
                 var next_10G=zzz[pos+'干命局十神'][k+1][0];
 
-                var change_re=sb_calc.calc_dynamic_effect_change(
+                var change_re=sb_calc_tools.calc_dynamic_effect_change(
                     next_qr.综合得分,
                     cur_qr.综合得分,
                     next_10G,
