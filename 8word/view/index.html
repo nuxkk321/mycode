@@ -138,6 +138,7 @@
             position: absolute; left: 0; top: 0; right: 0; bottom: 0;margin:auto;
             width:50px;height:50px;border:1px solid blue;cursor: pointer
         }
+        .dis_ib{display: inline-block}
         .e5label_阴{
             background-color:#000;
             color:#fff;
@@ -438,14 +439,90 @@
             </tr>
         </table>
     </div>
+	<script type='text/html' id='word_info_onmouseover_tpl'>
+
+		<div style="text-align:center">
+		{{dated[0]}}/{{dated[1]}}/{{dated[2]}}
+		&nbsp;&nbsp;
+		{{dated[3]-1}}:00:00~{{dated[3]+1}}:00:00
+		</div>
+
+        <table>
+            <tr>
+
+            {{each t_arr part k0}}
+                <td>
+                    <%
+                        var part_num=t_arr_key[part];
+
+                        var cell_str='';
+                        /*第1行,基本天干*/
+                    %>
+                    <table>
+                        {{if calc_param.compare_by_input}}
+                        <tr>
+                            <td colspan="4">';
+                                流{{part}}天干:{{winfo[part+'干']}}({{winfo[part+'干强弱'].综合得分}})
+                            </td>
+                        </tr>
+                        {{/if}}
+
+                        <tr>
+                            <td colspan="4">
+                                {{winfo[part+'干']}}
+                                ({{winfo.日干命局十神[k0][0]}})
+                            </td>
+                        </tr>
+
+                        <tr><td colspan="4">&nbsp;</td></tr>
+
+                        <tr>
+                        {{each [0,1,2,3] vn kn}}
+                            <td>
+                                {{winfo[part+'干命局十二长生'][vn][0]}}
+                            </td>
+                        {{/each}}
+                        </tr>
+
+                        <tr>
+                            <td colspan="4">
+                                {{winfo[part+'支']}}
+                            <td>
+                        </tr>
+
+                        {{each q_arr v1 k1}}
+                        <tr>
+
+                            <td>
+                                {{if winfo[part+'支'+v1].天干}}
+
+                                    {{winfo[part+'支'+v1].天干}}
+
+                                    ({{winfo.日干命局十神[k0][k1+1]}})
+                                    ({{winfo[part+'支'+v1].命局透出.length}})
+
+                                {{else}}
+                                    &nbsp;&nbsp;
+                                {{/if}}
+                            </td>
+
+                        </tr>
+                        {{/each}}
+
+                    </table>
+                </td>
+            {{/each}}
+
+            </tr>
+        </table>
+	</script>
 </body>
 
 
 <script type="text/javascript" src='../public/jquery-1.10.2.min.js'></script>
 <script type="text/javascript" src='../public/jedate/jquery.jedate-3.7.min.js'></script>
 <script type="text/javascript" src='../public/echarts.min.js'></script>
-
-
+<script type="text/javascript" src='../public/art-template-web.js'></script>
 <script type="text/javascript" src='../public/8word_calc.js'></script>
 <script>
     var word_info_box2;
@@ -581,7 +658,8 @@
             $.each([0,1,2,3],function(k,v){
                 re+='<td>';
                 if(part_num==v){
-                    re+='<div>'+word_info[part+'干']+'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span></div>';
+                    re+='<div>'+word_info[part+'干']+'</div>' +
+                    '<div><span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span></div>';
                 }else{
                     re+='&nbsp;&nbsp;';
                 }
@@ -697,7 +775,8 @@
         }
         function br_info(part){
             var e5info=word_info[part+'支五行'];
-            var re='<div>'+word_info[part+'支']+'(<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>)</div>';
+            var re='<div>'+word_info[part+'支']+'</div>' +
+                    '<div><span class="dis_ib e5label_'+e5info[0]+'">('+e5info[1]+')</span></div>';
             return re;
         }
         $('.c_4_1',winfo_box).html('地支');
@@ -742,9 +821,10 @@
                 var e5info=cg_info.五行;
                 if(e5info){
                     var tg='';
-                    tg+='<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>';
-                    tg+='('+info[part+'支'+qi_name].命局透出.length+'):'+info.日干命局十神[part_pos_num][k2+1];
-                    cg_el+='<div>'+(info[part+'支'+qi_name].天干 || '&nbsp;')+tg+'</div>';
+                    tg+='<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'+info.日干命局十神[part_pos_num][k2+1];
+                    tg+='('+info[part+'支'+qi_name].命局透出.length+')';
+                    cg_el+='<div>'+(info[part+'支'+qi_name].天干 || '&nbsp;')+'</div>' +
+                    '<div>'+tg+'</div>';
                 }
 
             });
@@ -827,163 +907,25 @@
 
         return word_info;
     }
-
+    template.defaults.imports.log = console.log;
+	var word_info_onmouseover_tpl='';
     function build_word_info_onmouseover(winfo,dated,count_5e){
-        var dated_hstart=dated[3]-1;
-        var dated_hend=dated[3]+1;
+		var tpl_data={
+            calc_param:calc_param,
+            winfo:winfo,
+			dated:dated,
+            t_arr:t_arr,
+            t_arr_key:t_arr_key,
+            q_arr:q_arr
+		};
+        var mouse_over_str=template.render(word_info_onmouseover_tpl,tpl_data);
 
-        var mouse_over_str='';
-        mouse_over_str+='<div style="text-align:center">'+dated[0]+'/'+dated[1]+'/'+dated[2]+'</div>';
-        mouse_over_str+='<div style="text-align:center">'+dated_hstart+':00:00~'+dated_hend+':00:00'+'</div>';
-
-        $.each(t_arr,function(k0,part){
-            var part_num=t_arr_key[part];
-
-            var cell_str='';
-            /*第1行,基本天干*/
-            if(calc_param.compare_by_input){
-                cell_str+='<tr>';
-                cell_str+='<td colspan="4">';
-                cell_str+='流'+part+'天干:'+winfo[part+'干']+'('+winfo[part+'干强弱'].综合得分+')';
-                cell_str+='</td>';
-                cell_str+='</tr>';
-            }
-            cell_str+='<tr>';
-            $.each(t_arr,function(kn,vn){
-                cell_str+='<td>';
-                if(part==vn){
-                    cell_str+=winfo[part+'干'];
-                }else{
-                    cell_str+='&nbsp;&nbsp;';
-                }
-                cell_str+='</td>';
-            });
-            cell_str+='</tr>';
-
-            /*第2行 TODO::*/
-            cell_str+='<tr><td colspan="4"></td></tr>';
-
-            /*第3行,所有十二长生*/
-            cell_str+='<tr>';
-            $.each([0,1,2,3],function(kn,vn){
-                cell_str+='<td>'+winfo[part+'干命局十二长生'][vn][0]+'</td>';
-            });
-            cell_str+='</tr>';
-
-            /*第4~6行,所有通根情况*/
-            var tg=winfo[part+'干通根命局'];
-            $.each(q_arr,function(k1,q_name){
-                cell_str+='<tr>';
-                $.each([0,1,2,3],function(k4,zhu_pos){
-                    cell_str+=
-                            '<td>'+
-                            '<div>'+tg[zhu_pos][q_name].通根类型+'</div>' +
-                            '<div>'+tg[zhu_pos][q_name].单项最终得分+'</div>'+
-                            '</td>';
-                });
-                cell_str+='</tr>';
-            });
-
-            /*第7行,此柱天干总计*/
-            cell_str+='<tr><td colspan="4">' +
-            '总计:'+winfo[part+'干']+':'+parseFloat(winfo[part+'干强弱'].综合得分).toFixed(1);
-            if(winfo[part+'干正根数量']<1){
-                cell_str+='(无正根)'
-            }
-            cell_str+='</td></tr>';
-
-            /*第9行,基本地支*/
-            cell_str+='<tr>';
-            $.each(t_arr,function(kn,vn){
-                cell_str+='<td>';
-                if(part==vn){
-                    cell_str+=winfo[part+'支'];
-                }else{
-                    cell_str+='&nbsp;&nbsp;';
-                }
-                cell_str+='</td>';
-            });
-            cell_str+='</tr>';
-
-            /*第10~12行,藏干和透出*/
-            $.each(q_arr,function(k1,v1){
-                cell_str+='<tr>';
-                $.each(t_arr,function(kn,vn){
-                    cell_str+='<td>';
-                    if(part==vn){
-                        if(winfo[part+'支'+v1].天干){
-                            cell_str+=winfo[part+'支'+v1].天干+
-                            '('+winfo[part+'支'+v1].命局透出.length+')'+
-                            '('+winfo[part+'支'+v1].流年透出.length+')';
-                        }
-
-                    }else{
-                        cell_str+='&nbsp;&nbsp;';
-                    }
-                    cell_str+='</td>';
-                });
-                cell_str+='</tr>';
-            });
-
-
-
-            /*流年地支*/
-            if(calc_param.compare_by_input) {
-                cell_str+='<tr><td colspan="4">'+'流'+part+'地支:';
-                cell_str+='</td></tr>';
-
-                cell_str+='<tr>';
-                $.each(t_arr,function(kn,vn){
-                    cell_str+='<td>';
-                    if(part==vn){
-                        cell_str+=winfo[part+'支'];
-                    }else{
-                        cell_str+='&nbsp;&nbsp;';
-                    }
-                    cell_str+='</td>';
-                });
-                cell_str+='</tr>';
-
-                $.each(q_arr,function(k1,v1){
-                    cell_str+='<tr>';
-                    $.each(t_arr,function(kn,vn){
-                        cell_str+='<td>';
-                        if(part==vn){
-                            if(winfo[part+'支'+v1].天干){
-                                cell_str+=winfo[part+'支'+v1].天干+
-                                '('+winfo[part+'支'+v1].命局透出.length+')'+
-                                '('+winfo[part+'支'+v1].流年透出.length+')';
-                            }
-                        }else{
-                            cell_str+='&nbsp;&nbsp;';
-                        }
-                        cell_str+='</td>';
-                    });
-                    cell_str+='</tr>';
-                });
-            }
-
-            $('#word_info_box2 .zhu_info_'+k0).html(cell_str);
-        });
-
-        mouse_over_str+=$('#word_info_box2').html();
-        mouse_over_str+='<div>';
-        $.each(count_5e,function(k2,v2){
-            if(v2>0) mouse_over_str+=k2+':'+v2+' ';
-        });
-        mouse_over_str+='</div>';
-
-        mouse_over_str+='<div>';
-        $.each(winfo.统计,function(k2,v2){
-            if(v2>0) mouse_over_str+=k2+':'+v2+' ';
-        });
-        mouse_over_str+='</div>';
-        //console.log(params);
         return mouse_over_str;
     }
 
     $(function(){
-
+		word_info_onmouseover_tpl=$('#word_info_onmouseover_tpl').text();
+		
         /*初始化详细信息表格*/
         var word_info_table_str='<table border="1" cellpadding="0" cellspacing="0" id="word_info_table">';
         for(var i=1;i<10;i++){
@@ -1184,7 +1126,7 @@
                                         color:map_5e_color_area[num],
                                         borderWidth:0.5,
                                         borderColor :'#000',
-                                        show:true,
+                                        show:true
                                     }
                                 },
                                 data:[]
@@ -1258,6 +1200,12 @@
 					
 					}
                     var main_box_width=myChart.getWidth();
+					var pos_step_length=main_box_width/97;
+					var big_mk_width=pos_step_length*1.6;/*大标记的宽度*/
+					function _get_fix(step){
+						return -95-big_mk_width*1.6-big_mk_width*step;
+					}
+					
                     $.each(word_info_list,function(k,calc_re){
                         if(calc_length=='d'){
 
@@ -1302,8 +1250,7 @@
                             series[0].data.push([count_5e.土,data_axis_index,dbclick_data,build_word_info_onmouseover(liunian,dated,count_5e)]);
 
 							//以下是markpoint
-							var pos_step_length=main_box_width/97;
-                            var big_mk_width=pos_step_length*1.6;/*大标记的宽度*/
+						
                             function add_markpoint(winfo,type,pos){
                                 var str='';
                                 var s_num=0;
@@ -1403,7 +1350,7 @@
 										var chk_5e=array_get(winfo,'同五行.支',{});
 										var pdata={
 											yAxis:data_axis_index,
-											xAxis:pos,
+											xAxis:pos
 										};
 										$.each(chk_5e,function(kk,vv){
 											if(vv.length>2){
@@ -1626,9 +1573,7 @@
                             }
                             add_markpoint(liunian,'天干同五行',-65-big_mk_width*0.8);
 
-                            function _get_fix(step){
-                                return -95-big_mk_width*1.6-big_mk_width*step;
-                            }
+                            
 							add_markpoint(liunian,'地支同五行',_get_fix(1));
 
                             if(calc_param.only_show_compare_relation){
