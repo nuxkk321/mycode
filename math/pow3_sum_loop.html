@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title> </title>
+	<style>
+		.row.is_0{border:2px solid red}
+		.cell{
+			min-width:36px;
+			display:inline-block;
+			padding:3px;
+			border-top:1px solid #000}
+		.first{border-left:1px solid #000;border-right:1px solid #000}
+		.match_1{background-color:#0f5}
+		.match_2{background-color:yellow}
+		.match_3{background-color:red}
+		.qmark{color:#88ff00;background-color:#8800ff}
+	</style>
+</head>
+<body>
+</body>
+<script type="text/javascript" src="./jquery-1.12.4.min.js"></script>
+<script>
+
+function get_num_pow3_sum(num){
+	num=String(num).split('');
+	var re=0;
+	for(var x in num){
+		re+=Math.pow(num[x],3);
+	}
+	return re;
+}
+
+function get_num_pow3_sum_loop(num){
+	var c=0;
+	var num_old=0;
+	var $arr=[];
+	
+	var match=0;
+	while(!(match)){
+		if(num_old==num){
+			match=1;
+		}
+		if(num_old==$arr[c-3]){
+			match=2;
+		}
+		if(num_old==$arr[c-4]){
+			match=3;
+		}
+		
+		num_old=num;
+		$arr.push(num);
+		num=get_num_pow3_sum(num);
+		c++;
+		if(c>99) break;
+	}
+
+	return {data:$arr,match:match};
+}
+
+var time_cost=new Date().getTime();
+function init(){
+	var $count=100;
+	var html='';
+	for(var i=999;i>=0;i--){
+		var re=get_num_pow3_sum_loop(i);
+		var match=re.match;
+		re=re.data;
+		var last=re[re.length-1];
+			
+		var f_class='';
+		if(last==0){
+			f_class='is_0';
+		}
+		html+='<div class="row '+f_class+'">';
+		
+		for(var x in re){
+			var v=re[x];
+			var v_fix='';
+			var sp_class='';
+			if(x==0){
+				sp_class+=' first';
+				if(v%2==0) v_fix+='('+2+')';
+				if(v%3==0) v_fix+='('+3+')';
+				if(v%5==0) v_fix+='('+5+')';
+				if(v%7==0) v_fix+='('+7+')';
+				if(v%11==0) v_fix+='('+11+')';
+				if(v%13==0) v_fix+='('+13+')';
+				if(v%17==0) v_fix+='('+17+')';
+				if(v%19==0) v_fix+='('+19+')';
+				
+				if(v%23==0) v_fix+='('+23+')';
+				
+				
+				if(!v_fix){
+					sp_class+=' qmark';
+				}
+			}
+			
+			if(match>0 && x==re.length-2){
+				sp_class+=' match_'+match;
+			}
+			if(match>1 && x==re.length-3){
+				sp_class+=' match_'+match;
+			}
+			if(match>2 && x==re.length-4){
+				sp_class+=' match_'+match;
+			}
+			
+			html+='<div class="cell '+sp_class+'">'+v+v_fix+'</div>';
+		}
+		
+		
+		html+='</div>';
+		
+		if(i<=$count) break;
+	}
+	$('body').append(html);
+}
+init();
+$(function(){
+	time_cost=new Date().getTime()-time_cost;
+	time_cost=time_cost/1000;
+	$('body').prepend('用时:'+time_cost+'秒');
+});
+
+</script>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title> </title>
+	<style>
+		.row.is_0{border:2px solid red}
+		.cell{display:inline-block;padding:3px;border-top:1px solid #000}
+		.first{border-left:1px solid #000;border-right:1px solid #000}
+		.not_594{color:red}
+		.not_594{color:#000;background-color:#f0f}
+	</style>
+</head>
+<body>
+</body>
+<script type="text/javascript" src="./jquery-1.12.4.min.js"></script>
+<script>
+
+function get_num_reset(num,$sort='asc'){
+	num=String(num).split('');
+	num.sort();
+	if($sort=='desc'){
+		num.reverse();
+	}	
+	return num.join('');
+}
+
+function get_num_reset_diff(num){
+	//console.log("get_num_reset_diff start:"+num);
+	var $max=get_num_reset(num,'desc');
+	var $min=get_num_reset(num);
+	var $diff=$max-$min;
+	//console.log("max is ",$max,"min is ",$min,'diff is ',$diff);
+	return $diff;
+}
+
+function get_num_reset_diff_loop(num){
+	var $c=0;
+	var num_new=0;
+	var $arr=[];
+	while(num_new!=num){
+		num_new=num;
+		$arr.push(num);
+		num=get_num_reset_diff(num);
+		$c++;
+		if($c>99) break;
+	}
+
+	return $arr;
+}
+
+
+var time_cost=new Date().getTime();
+var $count=10;
+var html='';
+for(var i=999;i>=0;i--){
+	var re=get_num_reset_diff_loop(i);
+
+	
+	var f_class='';
+	if(re[re.length-1]==0){
+		f_class='is_0';
+	}
+	html+='<div class="row '+f_class+'">';
+	
+
+	
+	for(var x in re){
+		var v=re[x];
+		var sp_class='';
+		if(x==0){
+			sp_class+=' first';
+		}
+		if(re[x-0+1]==495){//倒数第二个
+			sp_class+=' '+((v==594)?'is_594':'not_594');
+			if(v!=''){
+				//sp_class+=' not_4176'
+			}
+		}
+		//if(re.length<3) console.log(123123,re,sp_class);
+		html+='<div class="cell '+sp_class+'">'+v+'</div>';
+	}
+	
+	
+	html+='</div>';
+	
+	if(i<=$count) break;
+}
+$('body').append(html);
+$(function(){
+	time_cost=new Date().getTime()-time_cost;
+	time_cost=time_cost/1000;
+	$('body').prepend('用时:'+time_cost+'秒');
+});
+
+</script>
+</html>
