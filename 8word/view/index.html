@@ -119,7 +119,7 @@
             margin-left:290px;
             position: relative;
             width: auto;
-            height:1600px;
+            height:2500px;
             overflow: hidden;
         }
         #display_box .box_block{
@@ -402,7 +402,7 @@
                     </div>
                 </td>
                 <td style="width:600px">
-                    <div id="main" style="width:100%;min-height: 1600px">
+                    <div id="main" style="width:100%;min-height: 2500px">
 
                     </div>
                     <div id="branche_box" style="position: relative">
@@ -658,8 +658,10 @@
             $.each([0,1,2,3],function(k,v){
                 re+='<td>';
                 if(part_num==v){
-                    re+='<div>'+word_info[part+'干']+'</div>' +
-                    '<div><span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span></div>';
+                    re+=
+					'<div>'+word_info[part+'干']+
+					'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'+
+					'</div>';
                 }else{
                     re+='&nbsp;&nbsp;';
                 }
@@ -728,15 +730,23 @@
             return ht;
         }
 
-        $('.c_3_2',winfo_box).html(gz_rela(word_info.年干支关系));
+        $('.c_3_2',winfo_box).html(gz_rela(word_info.年干支关系)+
+			'<div>↑</div><div>'+word_info.年干命局十二长生[0]+'</div>'
+		);
 
-        $('.c_3_4',winfo_box).html(gz_rela(word_info.月干支关系));
-
+        $('.c_3_4',winfo_box).html(gz_rela(word_info.月干支关系)+
+			'<div>↑</div><div>'+word_info.月干命局十二长生[1]+'</div>'
+		);
+		
         $('.c_3_5',winfo_box).html('<div>↗</div><div>'+word_info.日干命局十二长生[1]+'</div>');
 
-        $('.c_3_6',winfo_box).html(gz_rela(word_info.日干支关系));
+        $('.c_3_6',winfo_box).html(gz_rela(word_info.日干支关系)+
+			'<div>↑</div><div>'+word_info.日干命局十二长生[2]+'</div>'
+		);
 
-        $('.c_3_8',winfo_box).html(gz_rela(word_info.时干支关系));
+        $('.c_3_8',winfo_box).html(gz_rela(word_info.时干支关系)+
+			'<div>↑</div><div>'+word_info.时干命局十二长生[3]+'</div>'
+		);
 
 
         /*八字地支*/
@@ -775,8 +785,10 @@
         }
         function br_info(part){
             var e5info=word_info[part+'支五行'];
-            var re='<div>'+word_info[part+'支']+'</div>' +
-                    '<div><span class="dis_ib e5label_'+e5info[0]+'">('+e5info[1]+')</span></div>';
+            var re=
+				'<div>'+word_info[part+'支']+
+                    '<span class="dis_ib e5label_'+e5info[0]+'">('+e5info[1]+')</span>'+
+				'</div>';
             return re;
         }
         $('.c_4_1',winfo_box).html('地支');
@@ -813,21 +825,27 @@
             '</table>'
         );
         function build_cg_box(info,part){
-            var cg_el='';
+            var cg_el='<table style="width:auto;margin:auto" border="1">';
             var part_pos_num=t_arr_key[part];
 
             $.each(q_arr,function(k2,qi_name) {
                 var cg_info=info[part+'支'+qi_name];
                 var e5info=cg_info.五行;
                 if(e5info){
-                    var tg='';
-                    tg+='<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'+info.日干命局十神[part_pos_num][k2+1];
-                    tg+='('+info[part+'支'+qi_name].命局透出.length+')';
-                    cg_el+='<div>'+(info[part+'支'+qi_name].天干 || '&nbsp;')+'</div>' +
-                    '<div>'+tg+'</div>';
+                    cg_el+=
+					'<tr>'+
+						'<td style="width:30px;">'+(info[part+'支'+qi_name].天干 || '&nbsp;')+
+							'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'+
+						'</td >' +
+						'<td style="width:50px">'+
+							info.日干命局十神[part_pos_num][k2+1]+
+							'('+info[part+'支'+qi_name].命局透出.length+')'+
+						'</td>'+
+					'</tr>';
                 }
 
             });
+			cg_el+='</table>';
             return cg_el;
         }
 
@@ -1258,6 +1276,26 @@
 								pos=(pos)*pos_step_length;
 
                                 switch(type){
+									case '月令':
+										var mp_data={
+											name:'',
+											yAxis:data_axis_index,
+											xAxis:pos,
+											symbol:'circle',
+											symbolSize:20,
+											itemStyle:{
+												normal:{
+													color:'#00FF00'
+												}
+											}
+										};
+										$.each(q_arr,function(k,qi_name) {
+											if(winfo['月支'+qi_name] && winfo['月支'+qi_name].命局透出.length>0){
+												mp_data.name+=winfo['日干命局十神'][1][k+1]+"\r\n";
+											}
+										});
+										series[5].markPoint.data.push(mp_data);
+										break;
                                     case '年干':
                                     case '年支':
                                     case '月干':
@@ -1575,7 +1613,8 @@
 
                             
 							add_markpoint(liunian,'地支同五行',_get_fix(1));
-
+						
+							add_markpoint(liunian,'月令',45);
                             if(calc_param.only_show_compare_relation){
                                 var 额外效果=winfo.额外效果;
                                 add_markpoint(额外效果,'天干相冲',15);
