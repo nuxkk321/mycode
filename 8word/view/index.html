@@ -555,8 +555,6 @@
     }
     function updateHashTag(){
         var data=$('#settingsForm :input').serializeArray();
-        console.log(data);
-
 //            location.hash =
 //            's1=' + zoom + '&' +
 //            'b1=' + lookAt + '&' +
@@ -637,19 +635,17 @@
         word_info=word_info[0];
 //        console.log('综合计算结果:',word_info.月干强弱);
 
-        /*十神*/
-        $('.c_1_1',winfo_box).html('十神');
-
-        $('.c_1_2',winfo_box).html(word_info.日干命局十神[0][0]);
-        $('.c_1_4',winfo_box).html(word_info.日干命局十神[1][0]);
-        $('.c_1_6',winfo_box).html('日主');
-        $('.c_1_8',winfo_box).html(word_info.日干命局十神[3][0]);
-
+		/* 创建一个表示 五行和阴阳的小方块*/
+		function build_5e_block(_5e_info){
+			return 
+			'<span class="e5label_'+_5e_info[0]+'">'+
+				_5e_info[1]+
+			'</span>';
+		}
+        
         /*八字天干*/
-        $('.c_2_1',winfo_box).html('<div>天干</div><div>通根情况:</div>');
         function tg_info(part){
             var part_num=t_arr_key[part];
-            var e5info=word_info[part+'干五行'];
             var tg=word_info[part+'干通根命局'];
 
             var re='';
@@ -660,7 +656,7 @@
                 if(part_num==v){
                     re+=
 					'<div>'+word_info[part+'干']+
-					'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'+
+					//build_5e_block(word_info[part+'干五行'])+
 					'</div>';
                 }else{
                     re+='&nbsp;&nbsp;';
@@ -711,13 +707,38 @@
             }
             return re;
         }
-        $('.c_2_2',winfo_box).html(tg_info('年'));
-        $('.c_2_3',winfo_box).html(tg_gx(word_info.年干月干,word_info.年干月干变化值));
-        $('.c_2_4',winfo_box).html(tg_info('月'));
-        $('.c_2_5',winfo_box).html(tg_gx(word_info.月干日干,word_info.月干日干变化值));
-        $('.c_2_6',winfo_box).html(tg_info('日'));
-        $('.c_2_7',winfo_box).html(tg_gx(word_info.日干时干,word_info.日干时干变化值));
-        $('.c_2_8',winfo_box).html(tg_info('时'));
+        $('.c_1_1',winfo_box).html('<div>天干</div><div>通根情况:</div>');
+		$('.c_1_2',winfo_box).html(tg_info('年'));
+       
+        $('.c_1_4',winfo_box).html(tg_info('月'));
+        
+        $('.c_1_6',winfo_box).html(tg_info('日'));
+        
+        $('.c_1_8',winfo_box).html(tg_info('时'));
+		
+		/* 十神~天干 */
+        $('.c_2_1',winfo_box).html('十神<br/>天干');
+
+        $('.c_2_2',winfo_box).html(
+			word_info.日干命局十神[0][0]+'<br/>'+
+			word_info.年干
+		);
+		$('.c_2_3',winfo_box).html(tg_gx(word_info.年干月干,word_info.年干月干变化值));
+        $('.c_2_4',winfo_box).html(
+			word_info.日干命局十神[1][0]+'<br/>'+
+			word_info.月干
+		);
+		$('.c_2_5',winfo_box).html(tg_gx(word_info.月干日干,word_info.月干日干变化值));
+        $('.c_2_6',winfo_box).html(
+			'日主'+'<br/>'+
+			word_info.日干
+		);
+		$('.c_2_7',winfo_box).html(tg_gx(word_info.日干时干,word_info.日干时干变化值));
+        $('.c_2_8',winfo_box).html(
+			word_info.日干命局十神[3][0]+'<br/>'+
+			word_info.时干
+		);
+		
         /*干支*/
         function gz_rela(info){
             if(!info[0]) return '';
@@ -854,15 +875,46 @@
         $('.c_5_6',winfo_box).html(build_cg_box(word_info,'日'));
         $('.c_5_8',winfo_box).html(build_cg_box(word_info,'时'));
 
-        $('.c_8_1',winfo_box).html('合计:');
+		(function(){
+			//合计信息:
+			$('.c_8_1',winfo_box).html('合计:');
 
-        //console.log(word_info.统计);
-        var hj_txt='';
-        $.each(word_info.统计,function(k,v){
-            hj_txt+='<div>'+k+':'+v+'</div>';
-        });
-        $('.c_8_2',winfo_box).html(hj_txt);
-
+			//console.log(word_info.统计);
+			var _zz_arr={
+				'甲':1,
+				'乙':1,
+				'丙':1,
+				'丁':1,
+				'戊':1,
+				'己':1,
+				'庚':1,
+				'辛':1,
+				'壬':1,
+				'癸':1
+			};
+			function _zz(st){
+				if(!_zz_arr[st]) return;
+				_zz_arr[st]++;
+			}
+			$.each(t_arr,function(k,v){
+				_zz(word_info[v+'干']);
+				_zz((word_info[v+'支本气'] || {}).天干);
+				_zz((word_info[v+'支中气'] || {}).天干);
+				_zz((word_info[v+'支余气'] || {}).天干);
+			});
+			
+			var 合计_text='';
+			$.each(_zz_arr,function(k,v){
+				合计_text+='<div>'+k+':'+(v-1)+'</div>';
+			});
+			$('.c_8_2',winfo_box).html(合计_text);
+		 
+			var 合计_text2='';
+			$.each(word_info.统计,function(k,v){
+				合计_text2+='<div>'+k+':'+v+'</div>';
+			});
+			$('.c_8_3',winfo_box).html(合计_text2);
+		})();
         /*大运的信息*/
         function build_st_dayun(rela){
             var re='';
