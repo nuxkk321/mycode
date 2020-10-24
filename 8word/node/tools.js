@@ -14,7 +14,7 @@ exports.str_pad=function(input,pad_length,pad_string,pad_type){
     }
     return input;
 };
-exports.format_date=function(stamp,lv,return_arr){
+exports.format_date=function(stamp,lv,return_str){
     var time,re=[];
     if(stamp<0){
         time= new Date();
@@ -30,14 +30,16 @@ exports.format_date=function(stamp,lv,return_arr){
     if(lv>=5) re.push(exports.str_pad(time.getMinutes(),2,'0'));
     if(lv>=6) re.push(exports.str_pad(time.getSeconds(),2,'0'));
 
-    if(!return_arr){
+    /*是否返回字符串,如果为false 则返回数组*/
+    if(return_str){
         var str='';
-        if(typeof(return_arr)!='object') return_arr=['','-','-',' ',':',':'];
-        for(k in re){
-            if(lv>k) str+=return_arr[k]+re[k];
+        if(typeof(return_str)!='object') return_str=['','-','-',' ',':',':'];
+        for(var k in re){
+            if(lv>k) str+=return_str[k]+re[k];
         }
         re=str;
     }
+
     return re;
 };
 var dclog_style={
@@ -141,6 +143,23 @@ exports.isEmpty=function(val){
             return false;
     }
 };
+
+
+exports.arraySelect=function(input,keys){
+    if(typeof(keys)=='string') keys=keys.split(',');
+    var re={};
+    for(var k in keys){
+        var v=keys[k];
+        if(typeof(v)=='string') v=v.split(' ');
+
+        var new_key=v[0];
+        if(v.length>1) new_key=v[v.length-1];
+
+        re[new_key]=input[v[0]];
+    }
+    return re;
+};
+
 /*安全获取对象属性*/
 exports.getValue = function(obj, properties){
     if(typeof properties === 'string' || typeof properties === 'number'){
@@ -334,23 +353,41 @@ exports.continueTimeout=function(t){
 
 var querystring = require('querystring');
 var http = require('http');
+var https = require('https');
+
 exports.http_get=function(url,send_data,callback,err){
     var res_data='';
     if(!url){
         console.log("http_get error: url is empty");
+        callback(res_data,"http_get error: url is empty");
         return ;
     }
+
     var fix=url.indexOf('?')<0?'?':'&';
-    var req = http.get(url+(send_data?fix+querystring.stringify(send_data):''),function(res) {
+    fix=url+(send_data?fix+querystring.stringify(send_data):'');
+
+    function parse_data(res){
         res.on('data',function(d){
             res_data += d;
         }).on('end', function(a){
             callback(res_data);
         });
-    }).on('error', function(e) {
-        //TODO::查询接口出错
-        console.log("http_get error: " + e.message);
-    });
+    }
+
+    if(url.indexOf('https')==0){
+        var req = https.get(fix,parse_data).on('error', function(e) {
+            //TODO::查询接口出错
+            console.log("https_get error: " + e.message);
+            callback(res_data,e.message);
+        });
+    }else{
+        var req = http.get(fix,parse_data).on('error', function(e) {
+            //TODO::查询接口出错
+            console.log("http_get error: " + e.message);
+            callback(res_data,e.message);
+        });
+    }
+
     req.end();
 };
 
