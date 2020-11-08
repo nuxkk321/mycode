@@ -127,8 +127,8 @@
                         </td>
                         <td>
 							<select id="calc_length">
-                                <option value='h'>时辰</option>
-                                <option value='d'>天</option>
+                                <option value='h'>时</option>
+                                <option value='d' selected="selected">日</option>
                                 <option value='m'>月</option>
                             </select>
                         </td>
@@ -165,7 +165,7 @@
                 </td>
             </tr>
 			<tr>
-				<td style="width:100%" id="word_info_box2"></td><td></td>
+				<td style="width:100%"  ></td><td></td>
 			</tr>
         </table>
         <table class="box_block" style="display: none">
@@ -298,7 +298,6 @@
 <script type="text/javascript" src='../public/art-template-web.js'></script>
 <script type="text/javascript" src='../public/8word_calc.js'></script>
 <script>
-    var word_info_box2;
     var calc_param={};
     function igetv(obj,index,start){
         if(typeof(start)=='undefined') start=0;
@@ -940,7 +939,7 @@
             }
 
             start=start.split(' ');
-            var delimiter_year='/';
+            var delimiter_year='-';
             start[0]=start[0].split(delimiter_year);
             start[1]=start[1].split(':');
             if(start[1][0]%2==1){
@@ -951,7 +950,9 @@
 
             start=new Date(start);/*TODO::处理精确到分的节气分界点*/
             start=start.getTime();
-
+			
+			console.log(2222,'开始时间',start);
+			
             var calc_next_length=$('#calc_next_length').val();
             var end_time=start+calc_next_length*24*3600*1000;
 
@@ -970,623 +971,7 @@
                     });
                 },
                 end:function(lunar_month){
-                    var data_axis=[];
-                    var series=[{},{},{},{},{}];
-                    var map_5e_color_line=["#B88A00","#000000","#000099","#33FFA7","#FF0F0F"];
-                    var map_5e_color_area=["#B88A00","#FFFFCC","#000099","#00F5C7","#FF0F0F"];
-                    $.each(五行,function(name,num){
-                        series[num]={
-                            type:'line',
-                            stack: '总量',
-                            areaStyle: {normal: {
-                                color:map_5e_color_area[num],
-                                opacity:0.1
-                            }},
-                            name:name,
-                            smooth:true,
-                            lineStyle:{
-                                normal:{
-                                    color:map_5e_color_line[num],
-                                    opacity:0.2
-                                }
-                            },
-                            data:[],
-                            markPoint:{
-								symbol:'roundRect',
-								symbolSize:25,
-                                label:{
-                                    normal:{
-                                        formatter: function (param) {
-                                           return param.name;
-                                        },
-                                        textStyle: {
-                                            color: num==2?'#000':'#000'
-                                        }
-                                    }
-                                },
-                                itemStyle:{
-                                    normal:{
-                                        color:map_5e_color_area[num],
-                                        borderWidth:0.5,
-                                        borderColor :'#000',
-                                        show:true
-                                    }
-                                },
-                                data:[]
-                            }
-                        }
-                    });
-                    series.push({
-                        type:'line',
-                        name:'其他1',
-                        smooth:true,
-                        lineStyle:{
-                            normal:{
-                                color:'#000',
-                                opacity:0.2
-                            }
-                        },
-                        data:[],
-                        markPoint:{
-							symbol:'circle',
-							symbolSize:28,
-                            label:{
-                                normal:{
-                                    formatter: function (param) {
-                                        return param.name;
-                                    },
-                                    textStyle: {
-                                        color: '#000'
-                                    }
-                                }
-                            },
-                            itemStyle:{
-                                normal:{
-                                    color:'#666',
-                                    borderWidth:0.5,
-                                    borderColor :'#000',
-                                    show:true
-                                }
-                            },
-                            data:[]
-                        },
-                        markLine:{
-                            label:{
-                                normal:{
-                                    formatter: function (param) {
-                                        return param.name;
-                                    },
-                                    textStyle: {
-                                        color: '#000'
-                                    }
-                                }
-                            },
-                            lineStyle:{
-                                normal:{
-                                    color:'#000',
-                                    type:'dashed'
-                                }
-                            },
-                            data:[]
-                        }
-                    }); 
-					/*TODO::*/
-                    $.each(lunar_month,function(k,v){
-						
-                    });
-                    //series[5].markLine.data.push({
-                    //    name: 'Y 轴值为 100 的水平线',
-                    //    yAxis: 100
-                    //});
-                    var calc_length=$('#calc_length').val();
-					function set_markpoint(){
-					
-					}
-                    var main_box_width=myChart.getWidth();
-					var pos_step_length=main_box_width/97;
-					var big_mk_width=pos_step_length*1.6;/*大标记的宽度*/
-					function _get_fix(step){
-						return -95-big_mk_width*1.6-big_mk_width*step;
-					}
-					
-                    $.each(word_info_list,function(k,calc_re){
-                        if(calc_length=='d'){
-
-
-                        }else{
-
-                            var dated=sb_calc_tools.get_date_split_arr(parseInt(k));
-                            data_axis.push(dated[3]+':00');
-
-							var data_axis_index=data_axis.length-1;
-							if(dated[3]=='00'){ /*每天的0点 增加日期标记*/
-								series[5].markLine.data.push({
-									name: dated[0]+'-'+dated[1]+'-'+dated[2],
-									yAxis: data_axis_index
-								});
-							}
-
-
-
-                            var count_5e={'土':0,'金':0,'水':0,'木':0,'火':0};
-                            var winfo=calc_re[0];
-                            var liunian=calc_re[1];
-
-                            $.each(winfo.统计,function(kk,vv){
-                                count_5e[天干五行[kk][1]]+=vv;
-                            });
-                            $.each(count_5e,function(kk,vv){
-                                count_5e[kk]=parseFloat(vv.toFixed(2))+150;
-                            });
-
-
-                            var dbclick_data=arraySelect(
-                                    '年干,年支,' +
-                                    '月干,月支,' +
-                                    '日干,日支,' +
-                                    '时干,时支',
-                                    winfo);
-                            series[1].data.push([count_5e.金,data_axis_index,dbclick_data]);
-                            series[2].data.push([count_5e.水,data_axis_index,dbclick_data]);
-                            series[3].data.push([count_5e.木,data_axis_index,dbclick_data]);
-                            series[4].data.push([count_5e.火,data_axis_index,dbclick_data]);
-                            series[0].data.push([count_5e.土,data_axis_index,dbclick_data,build_word_info_onmouseover(liunian,dated,count_5e)]);
-
-							//以下是markpoint
-						
-                            function add_markpoint(winfo,type,pos){
-                                var str='';
-                                var s_num=0;
-                                if(!pos) pos=0;
-								pos=(pos)*pos_step_length;
-
-                                switch(type){
-									case '月令':
-										var mp_data={
-											name:'',
-											yAxis:data_axis_index,
-											xAxis:pos,
-											symbol:'circle',
-											symbolSize:20,
-											itemStyle:{
-												normal:{
-													color:'#00FF00'
-												}
-											}
-										};
-										$.each(q_arr,function(k,qi_name) {
-											if(winfo['月支'+qi_name] && winfo['月支'+qi_name].命局透出.length>0){
-												mp_data.name+=winfo['日干命局十神'][1][k+1]+"\r\n";
-											}
-										});
-										series[5].markPoint.data.push(mp_data);
-										break;
-									case '年支':
-										data_axis_index=data_axis_index+0.5;
-									case '月支':
-									case '日支':
-									case '时支':
-										
-                                    case '年干':
-                                    case '月干':
-                                    case '日干':
-                                    case '时干':
-                                        s_num=五行[winfo[type+'五行'][1]];
-                                        series[s_num].markPoint.data.push({
-                                            name:winfo[type],
-                                            symbol:'roundRect',
-                                            symbolSize:14,
-                                            yAxis:data_axis_index,
-                                            xAxis:pos
-                                        });
-                                        break;
-                                    case '时柱凶吉':
-                                    case '日柱凶吉':
-                                        var z_xj=winfo[type];
-                                        if(z_xj){
-                                            series[5].markPoint.data.push({
-                                                name:z_xj[0]+"\r\n"+z_xj[1],
-                                                yAxis:data_axis_index,
-                                                xAxis:pos,
-                                                symbol:'circle',
-                                                symbolSize:20,
-                                                itemStyle:{
-                                                    normal:{
-                                                        color:z_xj[0]=='吉'?'#00FF00':'#FF34B3'
-                                                    }
-                                                }
-                                            });
-                                        }
-                                        break;
-                                    case '天干相冲':
-                                        if(winfo.天干相冲.length>0){
-                                            str='';
-                                            var sp_style={};
-                                            $.each(winfo.天干相冲,function(k,v){
-                                                str+=v[0][0]+"冲\r\n("+v[2]+')';
-                                                if(v[2]=='正冲' || v[2]=='交叉'){
-                                                    sp_style={
-                                                        normal:{
-                                                            color:'#FF34B3'
-                                                        }
-                                                    };
-                                                }
-                                            });
-                                            series[5].markPoint.data.push({
-                                                name:str,
-                                                yAxis:data_axis_index,
-                                                xAxis:pos,
-                                                itemStyle:sp_style
-                                            });
-                                        }
-                                        break;
-                                    case '天干相合':
-                                        if(winfo.天干相合.length>0) {
-                                            var check_5e={};
-                                            $.each(winfo.天干相合,function(k,v){
-                                                str+=v[1]+' 合化 '+v[0]+" \r\n ";
-                                                check_5e[v[0]]=1;
-                                            });
-                                            if(obj_length(check_5e)==1){
-                                                s_num=五行[winfo.天干相合[0][0]];
-                                            }
-                                            series[s_num].markPoint.data.push({
-                                                name:str,
-                                                yAxis:data_axis_index,
-                                                xAxis:pos
-                                            });
-                                        }
-                                        break;
-									case '天干同五行':
-										var chk_5e=array_get(winfo,'同五行.干',{});
-										$.each(chk_5e,function(kk,vv){
-											if(vv.length>2){
-												s_num=五行[kk];
-												series[s_num].markPoint.data.push({
-													name:vv.length+"同",
-													yAxis:data_axis_index-1,
-													xAxis:pos,
-                                                    symbol:vv.length==4?'roundRect':'circle'
-                                                });
-											}
-										});
-										break;
-									case '地支同五行':
-										var chk_5e=array_get(winfo,'同五行.支',{});
-										var pdata={
-											yAxis:data_axis_index,
-											xAxis:pos
-										};
-										$.each(chk_5e,function(kk,vv){
-											if(vv.length>2){
-												s_num=五行[kk];
-												var str=vv.length+"同";
-												if(vv.length>3){
-                                                    var chk_unique={};
-													chk_unique[winfo.年支]=1;
-													chk_unique[winfo.月支]=1;
-													chk_unique[winfo.日支]=1;
-													chk_unique[winfo.时支]=1;
-													if(obj_length(chk_unique)==4){
-														str="四\r\n土\r\n俱\r\n全";
-														pdata.itemStyle={
-															normal:{
-																color:'#FF34B3'
-															}
-														};
-													}
-												}else{
-                                                    pdata.symbol='circle';
-												}
-												pdata.name=str;
-												series[s_num].markPoint.data.push(pdata);
-											}
-										});
-										break;
-                                    case '地支三会':
-                                        if(winfo.地支三会){
-                                            var sanhui_5e=winfo.地支三会[0];
-                                            series[五行[sanhui_5e]].markPoint.data.push({
-                                                name:'三会:'+sanhui_5e,
-                                                yAxis:data_axis_index,
-                                                xAxis:pos
-                                            });
-                                        }
-                                        break;
-                                    case '地支三合':
-                                        if(winfo.地支三合.length>0){
-                                            var sanhe_5e=winfo.地支三合[0][0];
-                                            series[五行[sanhe_5e]].markPoint.data.push({
-                                                name:"地支三合:\r\n"+winfo.地支三合[0],
-                                                yAxis:data_axis_index,
-                                                xAxis:pos
-                                            });
-                                        }
-                                        break;
-									case '地支暗会':
-										if(winfo.地支暗会.length>0){
-											str='';
-											s_num=0;
-											var check_5e={};
-											$.each(winfo.地支暗会,function(k,v){
-												str+=v[1]+"暗会:\r\n"+v[0][1]+v[0][0]+"\r\n";
-												check_5e[v[0][0]]=1;
-											});
-											if(obj_length(check_5e)==1){
-												s_num=五行[winfo.地支暗会[0][0][0]];
-											}
-											series[s_num].markPoint.data.push({
-												name:str,
-												yAxis:data_axis_index,
-												xAxis:pos
-											});
-										}
-										break;
-									case '地支暗拱':
-										var 地支暗拱=winfo.地支暗拱;
-										if(winfo.地支暗拱.length>0 && winfo.地支三合.length>0){
-											地支暗拱=[];
-											$.each(winfo.地支暗拱,function(k,v){
-												var _chk=v[1].split('');
-												var _chk_count=0;
-												$.each(_chk,function(kk,vv){
-													if(winfo.地支三合[0][1].indexOf(vv)>-1){
-														_chk_count++;
-													}
-												});
-												if(_chk_count==_chk.length){
-													/*已经有包含这个半合的三合了,不计算这个半合*/
-												}else{
-													地支暗拱.push(v);
-												}
-											});
-										}
-										if(地支暗拱.length>0){
-											str='';
-											s_num=0;
-											var check_5e={};
-											$.each(地支暗拱,function(k,v){
-												str+=''+v[1]+" \r\n 暗拱:"+v[0][1]+v[0][0]+" \r\n";
-												check_5e[v[0][0]]=1;
-											});
-											if(obj_length(check_5e)==1){
-												s_num=五行[地支暗拱[0][0][0]];
-											}
-											if(obj_length(check_5e)>0){
-												series[s_num].markPoint.data.push({
-													name:str,
-													yAxis:data_axis_index,
-													xAxis:pos
-												});
-											}
-										}
-										break;
-
-									case '地支半合':
-										var 地支半合=winfo.地支半合;
-										if(winfo.地支半合.length>0 && winfo.地支三合.length>0){
-											地支半合=[];
-											$.each(winfo.地支半合,function(k,v){
-												var _chk=v[1].split('');
-												var _chk_count=0;
-												$.each(_chk,function(kk,vv){
-													if(winfo.地支三合[0][1].indexOf(vv)>-1){
-														_chk_count++;
-													}
-												});
-												if(_chk_count==_chk.length){
-													/*已经有包含这个半合的三合了,不计算这个半合*/
-												}else{
-													地支半合.push(v);
-												}
-											});
-										}
-										if(地支半合.length>0){
-											str='';
-											s_num=0;
-											var check_5e={};
-											$.each(地支半合,function(k,v){
-												str+=''+v[1]+" \r\n 半合 "+v[0]+" \r\n ";
-												check_5e[v[0][0]]=1;
-											});
-											if(obj_length(check_5e)==1){
-												s_num=五行[地支半合[0][0][0]];
-											}
-
-											if(obj_length(check_5e)>0){
-												series[s_num].markPoint.data.push({
-													name:str,
-													yAxis:data_axis_index,
-													xAxis:pos
-												});
-											}
-										}
-										break;
-									case '地支六合':
-										if(winfo.地支六合.length>0){
-											str='';
-											s_num=0;
-											var check_5e={};
-											$.each(winfo.地支六合,function(k,v){
-												str+=''+v[1]+' 合 '+v[0]+" \r\n ";
-												check_5e[v[0][0]]=1;
-											});
-											if(obj_length(check_5e)==1){
-												s_num=五行[winfo.地支六合[0][0][0]];
-											}
-											series[s_num].markPoint.data.push({
-												name:"六合:\r\n "+str,
-												yAxis:data_axis_index,
-												xAxis:pos
-											});
-										}
-										break;
-                                    case '地支相冲':
-                                        if(winfo.地支相冲.length>0){
-                                            str='';
-                                            $.each(winfo.地支相冲,function(k,v){
-                                                str+=v[0][0]+'冲('+v[1]+')'+" \r\n ";
-                                            });
-                                            series[5].markPoint.data.push({
-                                                name:str,
-                                                yAxis:data_axis_index,
-                                                xAxis:pos,
-												itemStyle:{
-													normal:{
-														color:'#FF34B3'
-													}
-												}
-                                            });
-                                        }
-                                        break;
-									case '时柱三元九运':
-										if(winfo.时柱三元九运.length>0){
-                                            var str=winfo.时柱三元九运.title;
-                                            series[5].markPoint.data.push({
-                                                name:str,
-                                                yAxis:data_axis_index,
-                                                xAxis:pos,
-												itemStyle:{
-													normal:{
-													}
-												}
-                                            });
-                                        }
-										break;
-                                }
-                            }
-                            var str='';
-                            var s_num=0;
-
-                            if(calc_param.show_st_and_br){
-
-                                add_markpoint(liunian,'时柱凶吉',-23);
-                                add_markpoint(liunian,'日柱凶吉',-63);
-
-								if(calc_param.st_br_show_type=='nayin'){
-									s_num=五行[liunian['日柱纳音'][0]];
-									series[s_num].markPoint.data.push({
-										name:liunian['日干']+liunian['日支']+"\r\n"+liunian['日柱纳音'][1],
-										yAxis:data_axis_index,
-										xAxis:-2*pos_step_length
-									});
-									s_num=五行[liunian['时柱纳音'][0]];
-									series[s_num].markPoint.data.push({
-										name:liunian['时干']+liunian['时支']+"\r\n"+liunian['时柱纳音'][1],
-										yAxis:data_axis_index,
-										xAxis:-1*pos_step_length
-									});
-								}else{
-                                    add_markpoint(liunian,'时支',-35);
-                                    add_markpoint(liunian,'时干',-45);
-                                    add_markpoint(liunian,'日支',-75);
-                                    add_markpoint(liunian,'日干',-85);
-
-                                    add_markpoint(liunian,'月支',-70-big_mk_width*1.6);
-                                    add_markpoint(liunian,'月干',-80-big_mk_width*1.6);
-                                    add_markpoint(liunian,'年支',-90-big_mk_width*1.6);
-                                    add_markpoint(liunian,'年干',-100-big_mk_width*1.6);
-
-                                }
-
-                            }
-                           
-							add_markpoint(liunian,'天干同五行',_get_fix(1));
-							
-							//add_markpoint(liunian,'地支同五行',-65-big_mk_width*0.8);
-						
-							add_markpoint(liunian,'月令',45);
-                            if(calc_param.only_show_compare_relation){
-                                var 额外效果=winfo.额外效果;
-                                add_markpoint(额外效果,'天干相冲',15);
-                                add_markpoint(额外效果,'天干相合',30);
-
-                                add_markpoint(额外效果,'地支三合',_get_fix(3));
-
-                                add_markpoint(额外效果,'地支相冲',_get_fix(8));
-                            }
-                            if(!calc_param.only_show_compare_relation){
-                                /*天干部分*/
-                                add_markpoint(liunian,'天干相冲',15);
-                                add_markpoint(liunian,'天干相合',30);
-
-
-                                /*地支部分*/
-                                var sanhui;
-                                var sanhe;
-
-                                add_markpoint(liunian,'地支三会',_get_fix(2));
-                                add_markpoint(liunian,'地支三合',_get_fix(3));
-
-								add_markpoint(liunian,'地支暗会',_get_fix(4));
-								add_markpoint(liunian,'地支暗拱',_get_fix(5));
-
-                                add_markpoint(liunian,'地支半合',_get_fix(6));
-								add_markpoint(liunian,'地支六合',_get_fix(7));
-
-                                /*-----冲 刑 害-----*/
-                                add_markpoint(liunian,'地支相冲',_get_fix(8));
-
-                                if(liunian.地支三刑.length>0){
-                                    str='';
-                                    $.each(liunian.地支三刑,function(k,v){
-                                        str+=v[0]+'三刑('+v[2]+')'+" \r\n ";
-                                    });
-                                    series[5].markPoint.data.push({
-                                        name:str,
-                                        yAxis:data_axis_index,
-                                        xAxis:_get_fix(9)*pos_step_length
-                                    });
-                                }
-
-                                if(liunian.地支相刑.length>0){
-                                    str='';
-                                    $.each(liunian.地支相刑,function(k,v){
-                                        str+=v[0][0]+'相刑('+v[1]+')'+" \r\n ";
-                                    });
-                                    series[5].markPoint.data.push({
-                                        name:str,
-                                        yAxis:data_axis_index,
-                                        xAxis:_get_fix(10)*pos_step_length
-                                    });
-                                }
-                                if(liunian.地支相害.length>0){
-                                    str='';
-                                    $.each(liunian.地支相害,function(k,v){
-                                        str+=''+v[0][0]+'相害('+v[1]+')'+" \r\n ";
-                                    });
-                                    series[5].markPoint.data.push({
-                                        name:str,
-                                        yAxis:data_axis_index,
-                                        xAxis:_get_fix(11)*pos_step_length
-                                    });
-                                }
-                            }
-                        }
-
-                    });
-                    //console.log(yAxis,series);
-
-                    // 指定图表的配置项和数据
-                    var option = {
-                        yAxis: {
-                            type: 'category',
-                            boundaryGap: true,
-                            axisLine: {onZero: true},
-							position:'top',
-							offset:0,
-                            splitLine:{show:true},
-                            data: data_axis
-                        },
-                        xAxis: {
-                            type: 'value',
-                            min:-5000
-                        },
-                        series: series
-                    };
-                    // 使用刚指定的配置项和数据显示图表。
-                    //myChart.setOption(option);
-                    //myChart.hideLoading();
+                     
                 },
                 pool:{
 
@@ -1594,13 +979,25 @@
             };
 
 
-
-            myChart.showLoading();
+ 
             var org_word_info={};
             if(calc_param.compare_by_input){
                 org_word_info=reload_word_info_table($('#word_info_box1'));
             }
-            for(var s=start;s<end_time;s+=2*3600*1000){
+			
+			var calc_length=$('#calc_length').val();
+			
+			var time_step=2*3600*1000;
+			switch(calc_length){
+				case 'h':
+					break;
+				case 'd':
+					time_step=24*3600*1000;
+					break;
+			}
+				
+			
+            for(var s=start;s<end_time;s+=time_step){
                 _task.pool[s]=1;
                 word_info_list[s]={};
             }
@@ -1610,7 +1007,7 @@
                         if(err) return ;
                         //console.log(input_date,date_word);
                         var winfo=sb_calc_tools.parse_all(org_word_info,date_word,calc_param);
-                        //console.log(winfo);
+                        console.log(5555,winfo);
 							 
                         word_info_list[input_date]=winfo;
 
@@ -1624,43 +1021,6 @@
 
 
 
-    /*图表*/
-    var myChart = echarts.init(document.getElementById('main'));
-
-    // 指定图表的配置项和数据
-    // 使用刚指定的配置项和数据显示图表。
-    myChart.setOption({
-        title: {
-            text: '折线图堆叠'
-        },
-        tooltip: {
-            trigger: 'axis',
-            formatter: function (params) {
-                return params[0].data[3];
-            }
-        },
-        legend: {
-            data:['土','金','水','木','火']
-        },
-        dataZoom: [{
-            type: 'inside',
-            yAxisIndex:[0],
-            start: 1,
-            end: 100
-        }],
-        yAxis: {
-            type: 'time',
-            data: []
-        },
-        xAxis: {
-            type: 'value',
-            min:-5000
-        },
-        series:[]
-    });
-    myChart.on('restore',function(){
-        console.log(765765765);
-    });
 </script>
 
 </html>

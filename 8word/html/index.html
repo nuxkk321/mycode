@@ -147,6 +147,7 @@
         .e5label_阳{
             border:solid 1px #000;
         }
+		.main_word_cell{border:1px solid #000}
         .mouse_over_table{
             padding:0;
         }
@@ -383,16 +384,14 @@
     <div id="display_box">
         <table class="box_block">
             <tr>
-                <td style="width:650px" id="word_info_box1">
+                <td style="width:100%" id="word_info_box1">
 
                 </td>
-                <td style="width:100px;position: relative">
-                    <div class='next_btn'>
-                        >>>
-                    </div>
-					<div class="summary_text"></div>
+                <td >
+                    
                 </td>
             </tr>
+			<tr><td style="width:100%" id="word_info_box2"></td><td></td></tr>
         </table>
         <table class="box_block" style="display: none">
             <tr>
@@ -567,7 +566,7 @@
 
     }
 
-    function reload_input_time(timestr){
+    function reset_8w_time_input(timestr){
         function ddd(date_word){
             $.each(['干','支'],function(k1,fix){
                 $.each(['年','月','日','时'],function(k,v){
@@ -586,7 +585,7 @@
         if(timestr && typeof(timestr)=='object'){
             ddd(timestr);
         }else{
-            sb_calc_tools.get_date_info(timestr,function(err,date_word){
+            sb_calc_tools.get_date_8w_info(timestr,function(err,date_word){
                 ddd(date_word);
             });
         }
@@ -707,7 +706,10 @@
             }
             return re;
         }
-        $('.c_1_1',winfo_box).html('<div>天干</div><div>通根情况:</div>');
+        
+		
+		
+		$('.c_1_1',winfo_box).html('<div>天干</div><div>通根情况:</div>');
 		$('.c_1_2',winfo_box).html(tg_info('年'));
        
         $('.c_1_4',winfo_box).html(tg_info('月'));
@@ -715,28 +717,31 @@
         $('.c_1_6',winfo_box).html(tg_info('日'));
         
         $('.c_1_8',winfo_box).html(tg_info('时'));
+		$('.c_1_9',winfo_box).html(`
+		<div class='next_btn' style="width:50px;position: relative">
+			>>>
+		</div>
+		<div class="summary_text"></div>
+		`);
 		
+		 
 		/* 十神~天干 */
         $('.c_2_1',winfo_box).html('十神<br/>天干');
 
-        $('.c_2_2',winfo_box).html(
-			word_info.日干命局十神[0][0]+'<br/>'+
-			word_info.年干
+        $('.c_2_2',winfo_box).addClass('main_word_cell').html(
+			build_tg_to_day_rela_info_box(word_info,'年')
 		);
 		$('.c_2_3',winfo_box).html(tg_gx(word_info.年干月干,word_info.年干月干变化值));
-        $('.c_2_4',winfo_box).html(
-			word_info.日干命局十神[1][0]+'<br/>'+
-			word_info.月干
+        $('.c_2_4',winfo_box).addClass('main_word_cell').html(
+			build_tg_to_day_rela_info_box(word_info,'月')
 		);
 		$('.c_2_5',winfo_box).html(tg_gx(word_info.月干日干,word_info.月干日干变化值));
-        $('.c_2_6',winfo_box).html(
-			'日主'+'<br/>'+
-			word_info.日干
+        $('.c_2_6',winfo_box).addClass('main_word_cell').html(
+			build_tg_to_day_rela_info_box(word_info,'日')
 		);
 		$('.c_2_7',winfo_box).html(tg_gx(word_info.日干时干,word_info.日干时干变化值));
-        $('.c_2_8',winfo_box).html(
-			word_info.日干命局十神[3][0]+'<br/>'+
-			word_info.时干
+        $('.c_2_8',winfo_box).addClass('main_word_cell').html(
+			build_tg_to_day_rela_info_box(word_info,'时')
 		);
 		
         /*干支*/
@@ -794,14 +799,6 @@
             if(rela.暗会){
                 re+='<div>暗会:'+rela.暗会[0]+' 缺:'+rela.暗会[1]+'</div>';
             }
-            var diff=rela.五行关系;
-            if(diff[0]>0){
-                if(diff[2]){
-                    re+='<div>'+diff[1]+'→</div>';
-                }else{
-                    re+='<div>←'+diff[1]+'</div>';
-                }
-            }
             return re;
         }
         function br_info(part){
@@ -813,13 +810,13 @@
             return re;
         }
         $('.c_4_1',winfo_box).html('地支');
-        $('.c_4_2',winfo_box).html(br_info('年'));
+        $('.c_4_2',winfo_box).addClass('main_word_cell').html(br_info('年'));
         $('.c_4_3',winfo_box).html(build_br_rela(word_info.年支月支));
-        $('.c_4_4',winfo_box).html(br_info('月'));
+        $('.c_4_4',winfo_box).addClass('main_word_cell').html(br_info('月'));
         $('.c_4_5',winfo_box).html(build_br_rela(word_info.月支日支));
-        $('.c_4_6',winfo_box).html(br_info('日'));
+        $('.c_4_6',winfo_box).addClass('main_word_cell').html(br_info('日'));
         $('.c_4_7',winfo_box).html(build_br_rela(word_info.日支时支));
-        $('.c_4_8',winfo_box).html(br_info('时'));
+        $('.c_4_8',winfo_box).addClass('main_word_cell').html(br_info('时'));
 
         var other='';
         $.each(word_info.地支三合,function(k,v){
@@ -845,76 +842,58 @@
                 '</tr>' +
             '</table>'
         );
-        function build_cg_box(info,part){
+        function build_tg_to_day_rela_info_box(info,part,cg){
             var cg_el='<table style="width:auto;margin:auto" border="1">';
-            var part_pos_num=t_arr_key[part];
+            var t_arr_key2={年:0,月:1,日:2,时:3,大运:4};
+            var part_pos_num=t_arr_key2[part];
 
-            $.each(q_arr,function(k2,qi_name) {
-                var cg_info=info[part+'支'+qi_name];
-                var e5info=cg_info.五行;
-                if(e5info){
-                    cg_el+=
-					'<tr>'+
-						'<td style="width:30px;">'+(info[part+'支'+qi_name].天干 || '&nbsp;')+
-							'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'+
-						'</td >' +
-						'<td style="width:50px">'+
-							info.日干命局十神[part_pos_num][k2+1]+
-							'('+info[part+'支'+qi_name].命局透出.length+')'+
-						'</td>'+
-					'</tr>';
-                }
+			if(cg){
+				
+				$.each(q_arr,function(k2,qi_name) {
+                    var key=part+'支'+qi_name;
+					var tg_info=info[key];
+					var e5info=tg_info.五行;
+					if(e5info){
+                        var ss=get_stems_10G(tg_info.天干,info.日干);
+                        cg_el+=
+						'<tr>'+
+							'<td style="width:30px;">'+(tg_info.天干 || '&nbsp;')+
+								'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'+
+							'</td >' +
+							'<td style="width:50px">'+
+                                //array_get(info,['日干命局十神',part_pos_num,k2+1])+
+                                ss+
+								'('+tg_info.命局透出.length+')'+
+							'</td>'+
+						'</tr>';
+					}
 
-            });
+				});
+				
+			}else{
+			
+				var e5info=info[part+'干五行'];
+                var ss=get_stems_10G(info[part+'干'],info.日干);
+				cg_el+=
+				'<tr>'+
+					'<td style="width:30px;">'+info[part+'干']+
+						'<span class="e5label_'+e5info[0]+'">'+e5info[1]+'</span>'+
+					'</td >' +
+					'<td style="width:50px">'+
+						(part=='日'?'日主':ss)+
+					'</td>'+
+				'</tr>';
+				
+			}
 			cg_el+='</table>';
             return cg_el;
         }
 
-        $('.c_5_2',winfo_box).html(build_cg_box(word_info,'年'));
-        $('.c_5_4',winfo_box).html(build_cg_box(word_info,'月'));
-        $('.c_5_6',winfo_box).html(build_cg_box(word_info,'日'));
-        $('.c_5_8',winfo_box).html(build_cg_box(word_info,'时'));
+        $('.c_5_2',winfo_box).html(build_tg_to_day_rela_info_box(word_info,'年',1));
+        $('.c_5_4',winfo_box).html(build_tg_to_day_rela_info_box(word_info,'月',1));
+        $('.c_5_6',winfo_box).html(build_tg_to_day_rela_info_box(word_info,'日',1));
+        $('.c_5_8',winfo_box).html(build_tg_to_day_rela_info_box(word_info,'时',1));
 
-		(function(){
-			//合计信息:
-			$('.c_8_1',winfo_box).html('合计:');
-
-			//console.log(word_info.统计);
-			var _zz_arr={
-				'甲':1,
-				'乙':1,
-				'丙':1,
-				'丁':1,
-				'戊':1,
-				'己':1,
-				'庚':1,
-				'辛':1,
-				'壬':1,
-				'癸':1
-			};
-			function _zz(st){
-				if(!_zz_arr[st]) return;
-				_zz_arr[st]++;
-			}
-			$.each(t_arr,function(k,v){
-				_zz(word_info[v+'干']);
-				_zz((word_info[v+'支本气'] || {}).天干);
-				_zz((word_info[v+'支中气'] || {}).天干);
-				_zz((word_info[v+'支余气'] || {}).天干);
-			});
-			
-			var 合计_text='';
-			$.each(_zz_arr,function(k,v){
-				合计_text+='<div>'+k+':'+(v-1)+'</div>';
-			});
-			$('.c_8_2',winfo_box).html(合计_text);
-		 
-			var 合计_text2='';
-			$.each(word_info.统计,function(k,v){
-				合计_text2+='<div>'+k+':'+v+'</div>';
-			});
-			$('.c_8_3',winfo_box).html(合计_text2);
-		})();
         /*大运的信息*/
         function build_st_dayun(rela){
             var re='';
@@ -963,17 +942,26 @@
             return re;
         }
 
-        $('.c_6_1',winfo_box).html('<div>大运干:</div><div>'+word_info.大运干+'</div>');
+        $('.c_6_1',winfo_box).html(
+            '<div>大运干:</div>' +
+            '<div>'+build_tg_to_day_rela_info_box(word_info,'大运')+'</div>'
+        );
         $('.c_6_2',winfo_box).html(build_st_dayun(word_info.大运年干关系));
         $('.c_6_4',winfo_box).html(build_st_dayun(word_info.大运月干关系));
         $('.c_6_6',winfo_box).html(build_st_dayun(word_info.大运日干关系));
         $('.c_6_8',winfo_box).html(build_st_dayun(word_info.大运时干关系));
 
-        $('.c_7_1',winfo_box).html('<div>大运支:</div><div>'+word_info.大运支+'</div>');
+        $('.c_7_1',winfo_box).html(
+            '<div>大运支:</div>' +
+            '<div>'+word_info.大运支+'</div>'+
+            '<div>'+build_tg_to_day_rela_info_box(word_info,'大运',1)+'</div>'
+        );
         $('.c_7_2',winfo_box).html(build_br_dayun(word_info.大运年支关系));
         $('.c_7_4',winfo_box).html(build_br_dayun(word_info.大运月支关系));
         $('.c_7_6',winfo_box).html(build_br_dayun(word_info.大运日支关系));
         $('.c_7_8',winfo_box).html(build_br_dayun(word_info.大运时支关系));
+
+		$('.c_9',winfo_box).html('<div>流年天干:</div><div>流年地支:</div>');
 
         return word_info;
     }
@@ -997,11 +985,11 @@
 		word_info_onmouseover_tpl=$('#word_info_onmouseover_tpl').text();
 		
         /*初始化详细信息表格*/
-        var word_info_table_str='<table border="1" cellpadding="0" cellspacing="0" id="word_info_table">';
+        var word_info_table_str='<table border="0" cellpadding="0" cellspacing="0" id="word_info_table" style="width:100%">';
         for(var i=1;i<10;i++){
-            word_info_table_str+='<tr class="c_'+i+'"></tr>';
+            word_info_table_str+=`<tr class="c_${i}">`;
             for(var k=1;k<10;k++){
-                word_info_table_str+='<td class="word_info_cell c_'+i+'_'+k+'"></td>';
+                word_info_table_str+=`<td class="word_info_cell c_${i}_${k}"></td>`;
             }
             word_info_table_str+='</tr>';
         }
@@ -1052,7 +1040,7 @@
         $('#input_date').jeDate({
             format:'YYYY/MM/DD hh:mm:ss',
             choosefun:function(elem,timestr){
-                reload_input_time(timestr);
+                reset_8w_time_input(timestr);
             }
         });
         /*选择今天*/
@@ -1062,13 +1050,13 @@
                 date=new Date();
                 date=date.getTime();
             }
-            date=sb_calc_tools.get_date_arr(date);
+            date=sb_calc_tools.get_date_split_arr(date);
 
             date=date[4]-type*7200*1000;
 
-            date=sb_calc_tools.get_date_arr(date);
+            date=sb_calc_tools.get_date_split_arr(date);
             $('#input_date').val(date[5]);
-            reload_input_time(date[5]);
+            reset_8w_time_input(date[5]);
             setTimeout(function(){
                 $('#calc_now').click();
             },120);
@@ -1097,7 +1085,8 @@
         });
 
         /*翻页*/
-        $('.next_btn').click(function(){
+        $(document).on('click','.next_btn',function(){
+			console.log(1111,$(this).closest('.box_block'));
             $(this).closest('.box_block').hide().next().show();
             myChart.resize();
         });
@@ -1105,12 +1094,38 @@
             $(this).closest('.box_block').hide().prev().show();
         });
 
+		
         /*开始计算输入的日期*/
         $('#calc_now').click(function(){
             updateHashTag();
             var show_5e=$('#show_5e').is(':checked');
             update_calc_param();
             reload_word_info_table($('#word_info_box1'));
+			var date=$('#input_date').val();
+			
+			
+			$('#word_info_box2').html(`
+				<div>10天前(上1次天干循环):</div>
+				<div id="prev10d_info"></div>
+				<div>20天前(上2次天干循环):</div>
+				<div id="prev20d_info"></div>
+				<div>30天前(上3次天干循环):</div>
+				<div id="prev30d_info"></div>
+				<div>60天前(上6次天干循环):</div>
+				<div id="prev60d_info"></div>`
+			);
+			$.each([10,20,30,60],function(k,v){
+				var d=new Date(date).getTime()-v*24*3600*1000;
+				var el_id='#prev'+v+'d_info';
+				sb_calc_tools.get_date_8w_info(d,function(err,date_word,date_arr){
+					var date_str=`
+					${date_arr[0]}/${date_arr[1]}/${date_arr[2]} 
+					${date_word.年干}${date_word.年支} ${date_word.月干}${date_word.月支} ${date_word.日干}${date_word.日支}`;
+					$(el_id).html(date_str);
+				});
+			});
+		
+			
         });
 
         $('#calc_next').click(function(){
@@ -1121,7 +1136,7 @@
             if(!start){
                 start=new Date();
                 start=start.getTime()-24*3600*1000;
-                start=sb_calc_tools.get_date_arr(start);
+                start=sb_calc_tools.get_date_split_arr(start);
                 start=start[5];
                 $('#start_date').val(start);
             }
@@ -1187,7 +1202,7 @@
                                            return param.name;
                                         },
                                         textStyle: {
-                                            color: num==2?'#fff':'#000'
+                                            color: num==2?'#000':'#000'
                                         }
                                     }
                                 },
@@ -1282,7 +1297,7 @@
 
                         }else{
 
-                            var dated=sb_calc_tools.get_date_arr(parseInt(k));
+                            var dated=sb_calc_tools.get_date_split_arr(parseInt(k));
                             data_axis.push(dated[3]+':00');
 
 							var data_axis_index=data_axis.length-1;
@@ -1348,14 +1363,35 @@
 										});
 										series[5].markPoint.data.push(mp_data);
 										break;
+									case '格':
+										if(winfo.格局.可能的格.length>0){
+											var mp_data={
+												name:winfo.格局.可能的格[0]+'格',
+												yAxis:data_axis_index-1,
+												xAxis:pos,
+												symbol:'circle',
+												symbolSize:20,
+												itemStyle:{
+													normal:{
+														color:'#00FF00'
+													}
+												}
+											};
+											series[5].markPoint.data.push(mp_data);
+										}
+										
+										
+										break;
+									case '年支':
+										data_axis_index=data_axis_index+0.5;
+									case '月支':
+									case '日支':
+									case '时支':
+										
                                     case '年干':
-                                    case '年支':
                                     case '月干':
-                                    case '月支':
                                     case '日干':
-                                    case '日支':
                                     case '时干':
-                                    case '时支':
                                         s_num=五行[winfo[type+'五行'][1]];
                                         series[s_num].markPoint.data.push({
                                             name:winfo[type],
@@ -1429,7 +1465,7 @@
 												s_num=五行[kk];
 												series[s_num].markPoint.data.push({
 													name:vv.length+"同",
-													yAxis:data_axis_index,
+													yAxis:data_axis_index-1,
 													xAxis:pos,
                                                     symbol:vv.length==4?'roundRect':'circle'
                                                 });
@@ -1624,6 +1660,20 @@
                                             });
                                         }
                                         break;
+									case '时柱三元九运':
+										if(winfo.时柱三元九运.length>0){
+                                            var str=winfo.时柱三元九运.title;
+                                            series[5].markPoint.data.push({
+                                                name:str,
+                                                yAxis:data_axis_index,
+                                                xAxis:pos,
+												itemStyle:{
+													normal:{
+													}
+												}
+                                            });
+                                        }
+										break;
                                 }
                             }
                             var str='';
@@ -1631,8 +1681,8 @@
 
                             if(calc_param.show_st_and_br){
 
-                                add_markpoint(liunian,'时柱凶吉',-8);
-                                add_markpoint(liunian,'日柱凶吉',-22);
+                                add_markpoint(liunian,'时柱凶吉',-23);
+                                add_markpoint(liunian,'日柱凶吉',-63);
 
 								if(calc_param.st_br_show_type=='nayin'){
 									s_num=五行[liunian['日柱纳音'][0]];
@@ -1650,23 +1700,24 @@
 								}else{
                                     add_markpoint(liunian,'时支',-35);
                                     add_markpoint(liunian,'时干',-45);
-                                    add_markpoint(liunian,'日支',-55);
-                                    add_markpoint(liunian,'日干',-65);
+                                    add_markpoint(liunian,'日支',-75);
+                                    add_markpoint(liunian,'日干',-85);
 
-                                    add_markpoint(liunian,'月支',-65-big_mk_width*1.6);
-                                    add_markpoint(liunian,'月干',-75-big_mk_width*1.6);
-                                    add_markpoint(liunian,'年支',-85-big_mk_width*1.6);
-                                    add_markpoint(liunian,'年干',-95-big_mk_width*1.6);
+                                    add_markpoint(liunian,'月支',-70-big_mk_width*1.6);
+                                    add_markpoint(liunian,'月干',-80-big_mk_width*1.6);
+                                    add_markpoint(liunian,'年支',-90-big_mk_width*1.6);
+                                    add_markpoint(liunian,'年干',-100-big_mk_width*1.6);
 
                                 }
 
                             }
-                            add_markpoint(liunian,'天干同五行',-65-big_mk_width*0.8);
-
-                            
-							add_markpoint(liunian,'地支同五行',_get_fix(1));
+                           
+							add_markpoint(liunian,'天干同五行',_get_fix(1));
+							
+							//add_markpoint(liunian,'地支同五行',-65-big_mk_width*0.8);
 						
-							add_markpoint(liunian,'月令',45);
+							//add_markpoint(liunian,'月令',45);
+							add_markpoint(liunian,'格',45);
                             if(calc_param.only_show_compare_relation){
                                 var 额外效果=winfo.额外效果;
                                 add_markpoint(额外效果,'天干相冲',15);
@@ -1777,7 +1828,7 @@
             }
             for(var x in word_info_list){
                 (function(input_date){
-                    sb_calc_tools.get_date_info(parseInt(input_date),function(err,date_word){
+                    sb_calc_tools.get_date_8w_info(parseInt(input_date),function(err,date_word){
                         if(err) return ;
                         //console.log(input_date,date_word);
                         var winfo=sb_calc_tools.parse_all(org_word_info,date_word,calc_param);
@@ -1810,7 +1861,7 @@
 			params.value[2].日支+
 			params.value[2].时支
 		);
-        reload_input_time(params.value[2]);
+        reset_8w_time_input(params.value[2]);
         setTimeout(function(){
             $('#calc_now').click();
         },120);

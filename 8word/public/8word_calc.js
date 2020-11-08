@@ -1195,7 +1195,7 @@ var sb_calc_tools={
         output.天干相合=[];
         output.天干相冲=[];
 
-        $.each(t_arr,function(k,v){
+        $.each(['年','月','日','时','大运'],function(k,v){
             var 天干=output[v+'干'];
             output[v+'干五行']=天干五行[天干];
 
@@ -1204,6 +1204,7 @@ var sb_calc_tools={
             var 地支=output[v+'支'];
             output[v+'支五行']=地支五行[地支];
 
+            if(v=='大运') return true;
 
             var prev_z=t_arr[k-1];/*前一个*/
             var next_z=t_arr[k+1];/*后一个*/
@@ -1400,7 +1401,7 @@ var sb_calc_tools={
             var liunian= $.extend({},liunian_word_info);
         }
         /*计算地支藏干和透出*/
-        $.each(t_arr,function(k,check_pos){
+        $.each(['年','月','日','时','大运'],function(k,check_pos){
             var cg_1=地支藏干[output[check_pos+'支']];
             var cg_2=地支藏干[liunian[check_pos+'支']] || {};
             $.each(q_arr,function(k2,qi_name) {
@@ -1412,6 +1413,7 @@ var sb_calc_tools={
                     流年透出:check_cg_tc(cg_1_word,liunian),/*藏干的透干位置数组*/
                     本柱占比:cg_1[qi_name+'占比'] || 0
                 };
+                /*大运的计算到这里结束*/  if(check_pos=='大运') return true;
 
                 var cg_2_word=cg_2[qi_name];
                 liunian[check_pos+'支'+qi_name]={
@@ -1425,7 +1427,7 @@ var sb_calc_tools={
         });
 
         /*以四天干看其他天干、地支藏干、流年地支、流年地支藏干的十神、十二长生数据,并计算通根情况*/
-        $.each(t_arr,function(k,check_pos){
+        $.each(['年','月','日','时','大运'],function(k,check_pos){
             var 天干=output[check_pos+'干'];
             /*命局天干在命局和流年的信息*/
             $.each(['命局','流年'],function(_k,side){
@@ -1444,6 +1446,7 @@ var sb_calc_tools={
                 });
                 output[check_pos+'干'+side+'十二长生']=side_12cs;
 
+                /*大运的计算到这里结束*/  if(check_pos=='大运') return true;
 
                 output[check_pos+'干通根'+side]=
                 calc_stem_tg_value(

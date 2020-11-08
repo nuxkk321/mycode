@@ -71,44 +71,48 @@ function res_error(res,msg){
 var http_serv={
     PORT:10081,
     server:'',
+	create:function(){
+		
+	},
     restart:function(){
         var that=this;
-
-        var create=function(){
-            that.server=http.createServer(function(req, res) {
-                if(!req.url){
-                    res.end();
-                    return;
-                }
-                if (req.method.toLowerCase() == 'post'){
-                    //if(typeof(http_serv.post_res[req.url])=='function'){
-                    //    http_serv.post_res[req.url](req,res);
-                    //}
-                    res.end();
-                }else{
-                    var $_GET=url.parse(req.url,true);
-                    //console.log($_GET);
-                    var path_info=$_GET.pathname.split('/');
-                    //console.log('get is',$_GET.query,'pathinfo is',path_info);
-                    if(typeof(that.get_res[path_info[1]])=='function'){
-                        that.get_res[path_info[1]](req,res,$_GET.query,path_info);
-                    }else{
-                        res.end();
-                    }
-                }
-            }).listen(http_serv.PORT,function(){
-                dlog("http_server listening " + http_serv.PORT);
-            });
-        };
-
         if(that.server){
             that.server.close(function(){
                 ts.dclog('cyan','http_server restart');
-                setTimeout(create,1000)
+				that.server='';
+                setTimeout(that.restart,1000)
             });
-        }else{
-            create();
+			return '';
         }
+		
+		that.server=http.createServer(function(req, res) {
+			/**设置响应头允许ajax跨域访问**/
+			res.setHeader("Access-Control-Allow-Origin","*");
+			
+			if(!req.url){
+				res.end();
+				return;
+			}
+			
+			if (req.method.toLowerCase() == 'post'){
+				//if(typeof(that.post_res[req.url])=='function'){
+				//    that.post_res[req.url](req,res);
+				//}
+				res.end();
+			}else{
+				var $_GET=url.parse(req.url,true);
+				var path_info=$_GET.pathname.split('/');
+				// console.log(321321,path_info);
+				//console.log('get is',$_GET.query,'pathinfo is',path_info);
+				if(typeof(that.get_res[path_info[1]])=='function'){
+					that.get_res[path_info[1]](req,res,$_GET.query,path_info);
+				}else{
+					res.end();
+				}
+			}
+		}).listen(that.PORT,function(){
+			dlog("http_server listening " + that.PORT);
+		});
 
 
     },
@@ -122,7 +126,12 @@ var http_serv={
             res.end();
         },
         'index':function(req,res){
-            var file_content=fs.readFileSync(temp_path+'/view/index.html');
+            var file_content=fs.readFileSync(temp_path+'/html/index.html');
+            res.write(file_content);
+            res.end();
+        },
+		'index2':function(req,res){
+            var file_content=fs.readFileSync(temp_path+'/html/index2.html');
             res.write(file_content);
             res.end();
         },
@@ -136,21 +145,59 @@ var http_serv={
         }
     },
     api:{
+		get_jieqi_data:function(req,res,$_GET){
+			var year=$_GET['year'] || '';
+			if(year==''){
+				res.write('param error');
+				res.end();
+				return '';
+			}
+			var json_file_name=temp_path+'/public/month_jieqi_'+year+'.json';
+			console.log(5555555,'查询节气数据:',year,json_file_name,fs.existsSync(json_file_name)?'文件存在':'文件不存在');
+			if (fs.existsSync(json_file_name)) {
+				var data=fs.readFileSync(json_file_name,'utf8');
+				res.writeHead(200, { 'Content-Type': 'application/json' });
+				res.write(data);
+				res.end();
+				return '';
+			}
+			
+			var send_data={year:year};
+			jieqi_data_api.query(send_data,function(err,re){
+				if(err){
+
+				}else{
+					
+				}
+				//console.log('res!!!',re);
+				var data=parse_jieqi_data(re.list);
+				fs.writeFileSync(json_file_name,JSON.stringify(data));
+				res.write(JSON.stringify(data));
+				res.end();
+			});
+           
+		}
     }
 };
 http_serv.restart();
 
 
-//
-//child_process.exec(temp_path+'/index.url',{
-//        env: process.env
-//    },
-//    function (err, stdout, stderr) {
-//        if (err) {
-//            dlog('init open index error',err);
-//        }
-//    }
-//);
+
+for(var x in process.argv){
+	// console.log(123123231,process.argv[x]);
+	if(process.argv[x]=='auto_open'){
+		child_process.exec(temp_path+'/index.url',{
+			   env: process.env
+		   },
+		   function (err, stdout, stderr) {
+			   if (err) {
+				   dlog('init open index error',err);
+			   }
+		   }
+		);
+	}
+}
+
 
 
 
@@ -184,47 +231,42 @@ var jieqi_data_api={
     }
 };
 
+function parse_jieqi_data(data){
+	var month_node={};
+	for(var x in data){
+		var v=data[x];
+		var _time= v.time.split('-');
+		var m=parseInt(_time[1]);
+		if(!month_node[m]){
+			month_node[m]=[]
+		}
+		// if(v.jieqiid%2==1){
+			month_node[m].push({
+				name: v.name,
+				time: v.time
+			});
+		// }
+	}
+	return {month_node:month_node};
+}
 
 /*临时编写的获取农历数据的代码*/
 var loopg={
     interval:100,
     start:function(year){
         var da={};
-
-        var task_pool={};
-        var end=function(data){
-            var month_node={};
-
-            for(var x in data){
-                var v=data[x];
-                var _time= v.time.split('-');
-                var m=parseInt(_time[1]);
-                if(!month_node[m]){
-                    month_node[m]=[]
-                }
-                if(v.jieqiid%2==1){
-                    month_node[m].push({
-                        name: v.name,
-                        time: v.time
-                    });
-                }
-            }
-            var wdata={month_node:month_node};
-
-            fs.writeFileSync(temp_path+'/public/month_jieqi_'+year+'.json',JSON.stringify(wdata));
-            console.log('end!!!',data);
-
-        };
-
         var send_data={year:year};
         jieqi_data_api.query(send_data,function(err,re){
             if(err){
 
             }else{
-                //console.log('res!!!',re);
+                
             }
-            end(re.list);
+			//console.log('res!!!',re);
+			var data=parse_jieqi_data(re.list);
+			fs.writeFileSync(temp_path+'/public/month_jieqi_'+year+'.json',JSON.stringify(data));
+			console.log('end!!!',data);
         });
     }
 };
-//loopg.start(2018);
+// loopg.start(2020);
