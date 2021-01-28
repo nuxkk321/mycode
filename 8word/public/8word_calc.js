@@ -849,6 +849,7 @@ function get_stems_relation2(s1,s2){
     return re;
 }
 
+/*计算两个地支之间的关系*/
 function get_branches_relation(b1,b2){
     var re={};
     if(!b1 || !b2) return re;
@@ -1201,8 +1202,8 @@ var sb_calc_tools={
 
             var 天干强弱={通根得分:0,综合得分:tg_min_score};
 
-            var 地支=output[v+'支'];
-            output[v+'支五行']=地支五行[地支];
+            var current_br=output[v+'支'];
+            output[v+'支五行']=地支五行[current_br];
 
             if(v=='大运') return true;
 
@@ -1210,7 +1211,7 @@ var sb_calc_tools={
             var next_z=t_arr[k+1];/*后一个*/
 
             var diff;
-            var 地支强弱={生我:[],克我:[],我生:[],我克:[],刑:[],冲:[],害:[]};
+            var current_br_str={生我:[],克我:[],我生:[],我克:[],刑:[],冲:[],害:[]};
 
 
             if(prev_z){
@@ -1218,13 +1219,12 @@ var sb_calc_tools={
                 var diff_st1=get_stems_relation(天干,output[prev_z+'干']);
 
                 /*和前一个地支比较*/
-                var diff_br1=get_branches_relation(地支,output[prev_z+'支']);
-                if(diff_br1.刑) 地支强弱.刑.push(diff_br1.刑);
-                if(diff_br1.冲) 地支强弱.冲.push(diff_br1.冲);
-                if(diff_br1.害) 地支强弱.害.push(diff_br1.害);
+                var diff_br1=get_branches_relation(current_br,output[prev_z+'支']);
+                if(diff_br1.刑) current_br_str.刑.push(diff_br1.刑);
+                if(diff_br1.冲) current_br_str.冲.push(diff_br1.冲);
+                if(diff_br1.害) current_br_str.害.push(diff_br1.害);
 
-                output[v+'柱凶吉']=get_xiongji(地支,output[prev_z+'支']);
-
+                output[v+'柱凶吉']=get_xiongji(current_br,output[prev_z+'支']);
             }
 
             if(next_z){
@@ -1232,18 +1232,18 @@ var sb_calc_tools={
                 /*和后一个天干比较*/
                 var diff_st=get_stems_relation(天干,output[next_z+'干']);
                 /*和后一个地支比较*/
-                var diff_br=get_branches_relation(地支,output[next_z+'支']);
+                var diff_br=get_branches_relation(current_br,output[next_z+'支']);
 
                 if(diff_br.刑){
-                    地支强弱.刑.push(diff_br.刑);
+                    current_br_str.刑.push(diff_br.刑);
                     output.地支相刑.push([diff_br.刑,v+next_z]);
                 }
                 if(diff_br.冲){
-                    地支强弱.冲.push(diff_br.冲);
+                    current_br_str.冲.push(diff_br.冲);
                     output.地支相冲.push([diff_br.冲,v+next_z]);
                 }
                 if(diff_br.害){
-                    地支强弱.害.push(diff_br.害);
+                    current_br_str.害.push(diff_br.害);
                     output.地支相害.push([diff_br.害,v+next_z]);
                 }
 
@@ -1261,7 +1261,6 @@ var sb_calc_tools={
                 }
                 output[v+'支'+next_z+'支']=diff_br;
 
-
                 if(diff_st.冲){
                     var st_info_冲=[diff_st.冲,v+next_z];
                     if(diff_br.冲){
@@ -1270,10 +1269,10 @@ var sb_calc_tools={
                         if(diff_st.冲[2]==1){
                             str_冲=str_冲.split('').reverse().join('');
                         }
-                        if(str_冲==地支+output[next_z+'支']){
+                        if(str_冲==current_br+output[next_z+'支']){
                             //console.log(9999,'正冲:',diff_st.冲);
                             st_info_冲[2]='正冲';
-                        }else if(str_冲==output[next_z+'支']+地支){
+                        }else if(str_冲==output[next_z+'支']+current_br){
                             //console.log(8888,'交叉:',diff_st.冲,output);
                             st_info_冲[2]='交叉';
                         }else{
@@ -1294,20 +1293,24 @@ var sb_calc_tools={
                 output[v+'干'+next_z+'干']=diff_st;
             }
 
-            output[v+'干支关系']={};/*TODO::*/
+            if(v=='日'){
+                /*日柱再额外计算和年柱的关系*/
+                var diff_br_tmp=get_branches_relation(current_br,output['年支']);
+                output['年支日支']=diff_br_tmp;
+            }
 
+            output[v+'干支关系']={};/*TODO::*/
 
             if(output['大运干']){
                 /*和大运柱比较,大运柱均匀作用于每一柱*/
                 output['大运'+v+'干关系']=get_stems_relation(天干,output['大运干']);
-                output['大运'+v+'支关系']=get_branches_relation(地支,output['大运支']);
+                output['大运'+v+'支关系']=get_branches_relation(current_br,output['大运支']);
             }
 
             output[v+'干强弱']=天干强弱;
-            output[v+'支强弱']=地支强弱;
+            output[v+'支强弱']=current_br_str;
 
-
-            output[v+'柱纳音']=get_nayin(天干+地支);
+            output[v+'柱纳音']=get_nayin(天干+current_br);
 			
         });
 
@@ -1446,7 +1449,8 @@ var sb_calc_tools={
                 });
                 output[check_pos+'干'+side+'十二长生']=side_12cs;
 
-                /*大运的计算到这里结束*/  if(check_pos=='大运') return true;
+                /*大运的计算到这里结束*/
+                if(check_pos=='大运') return true;
 
                 output[check_pos+'干通根'+side]=
                 calc_stem_tg_value(

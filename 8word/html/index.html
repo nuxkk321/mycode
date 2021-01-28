@@ -125,6 +125,10 @@
         #display_box .box_block{
             width: 100%
         }
+        .border_span{
+            display: inline-block;
+            border: 1px solid #000;
+        }
         .word_info_cell{
             text-align: center;
             width:90px;
@@ -814,7 +818,16 @@
         $('.c_4_3',winfo_box).html(build_br_rela(word_info.年支月支));
         $('.c_4_4',winfo_box).addClass('main_word_cell').html(br_info('月'));
         $('.c_4_5',winfo_box).html(build_br_rela(word_info.月支日支));
-        $('.c_4_6',winfo_box).addClass('main_word_cell').html(br_info('日'));
+		
+		var is_year_break='';
+
+		if(word_info['年支日支'].冲){
+            is_year_break='岁破';
+		}
+        $('.c_4_6',winfo_box).addClass('main_word_cell').html(
+			br_info('日')+
+			'<div class="border_span">'+is_year_break+'</div>'
+		);
         $('.c_4_7',winfo_box).html(build_br_rela(word_info.日支时支));
         $('.c_4_8',winfo_box).addClass('main_word_cell').html(br_info('时'));
 
