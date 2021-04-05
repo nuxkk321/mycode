@@ -137,6 +137,8 @@
         #c_5{
             height:170px;
         }
+		.tips_red{background:red}
+		.tips_org{background:#ff8b00}
 		.summary_text{padding-top:100px}
         .next_btn,.prev_btn{
             position: absolute; left: 0; top: 0; right: 0; bottom: 0;margin:auto;
@@ -819,14 +821,16 @@
         $('.c_4_4',winfo_box).addClass('main_word_cell').html(br_info('月'));
         $('.c_4_5',winfo_box).html(build_br_rela(word_info.月支日支));
 		
-		var is_year_break='';
-
+		var fix_tips='';
 		if(word_info['年支日支'].冲){
-            is_year_break='岁破';
+            fix_tips+='<div class="border_span tips_red">岁破</div>';
+		}
+		if(word_info['月支日支'].冲){
+            fix_tips+='<div class="border_span tips_org">月破</div>';
 		}
         $('.c_4_6',winfo_box).addClass('main_word_cell').html(
 			br_info('日')+
-			'<div class="border_span">'+is_year_break+'</div>'
+			fix_tips
 		);
         $('.c_4_7',winfo_box).html(build_br_rela(word_info.日支时支));
         $('.c_4_8',winfo_box).addClass('main_word_cell').html(br_info('时'));

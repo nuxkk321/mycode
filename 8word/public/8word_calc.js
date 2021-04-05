@@ -1293,10 +1293,12 @@ var sb_calc_tools={
                 output[v+'干'+next_z+'干']=diff_st;
             }
 
+			/*日柱再额外计算和年柱,月柱的关系*/
             if(v=='日'){
-                /*日柱再额外计算和年柱的关系*/
                 var diff_br_tmp=get_branches_relation(current_br,output['年支']);
                 output['年支日支']=diff_br_tmp;
+				var diff_br_tmp2=get_branches_relation(current_br,output['月支']);
+                output['月支日支']=diff_br_tmp2;
             }
 
             output[v+'干支关系']={};/*TODO::*/
