@@ -115,7 +115,7 @@ var 十二长生={
 	'12':['养',1.1]
 };
 function get_12changsheng(st,br){
-    if(!br) return '';
+    if(!st || !br) return [];
 	var yy=天干五行[st][0]=='阳'?1:-1;
 	var cs_val=十二长生天干基数[st]+yy*地支五行[br][2];
 	if(cs_val>12) cs_val-=12;
@@ -772,6 +772,7 @@ function get_branches_5e(s){
 * */
 function get_stems_10G_all(winfo,stem,skip_pos){
     var re=[[],[],[],[]];
+    if(!stem) return re;
     $.each(['年','月','日','时'],function(k,v){
         if(skip_pos && skip_pos==v){
             re[k].push('');/*跳过指定位置的天干不看*/
@@ -785,9 +786,9 @@ function get_stems_10G_all(winfo,stem,skip_pos){
     });
     return re;
 }
-function get_stems_10G(t,s){
+function get_stems_10G(t,stem){
 	if(!t) return '';
-    var self_info=天干五行[s];
+    var self_info=天干五行[stem];
     var target_info=天干五行[t];
     var diff=get_5e_relation(target_info[1],self_info[1]);
     var relation=五行关系[Math.abs(diff[0])];
@@ -1126,6 +1127,7 @@ var sb_calc_tools={
             }
 			
             var month=parseInt(date_arr[1]);
+
             var month_jieqi_info=split_info.month_node[month];
             var catcht;
             for(var x in month_jieqi_info){
@@ -1197,8 +1199,8 @@ var sb_calc_tools={
         output.天干相冲=[];
 
         $.each(['年','月','日','时','大运'],function(k,v){
-            var 天干=output[v+'干'];
-            output[v+'干五行']=天干五行[天干];
+            var current_天干=output[v+'干'];
+            output[v+'干五行']=天干五行[current_天干];
 
             var 天干强弱={通根得分:0,综合得分:tg_min_score};
 
@@ -1207,30 +1209,19 @@ var sb_calc_tools={
 
             if(v=='大运') return true;
 
-            var prev_z=t_arr[k-1];/*前一个*/
-            var next_z=t_arr[k+1];/*后一个*/
+          
+            
+			for(var x=k+1;x<5;x++){
+				
+				var next_z=t_arr[x];/*后一个*/ 
+				
+				if(!next_z) break;
+				
+				var diff;
+				var current_br_str={生我:[],克我:[],我生:[],我克:[],刑:[],冲:[],害:[]};
 
-            var diff;
-            var current_br_str={生我:[],克我:[],我生:[],我克:[],刑:[],冲:[],害:[]};
-
-
-            if(prev_z){
-                /*和前一个天干比较*/
-                var diff_st1=get_stems_relation(天干,output[prev_z+'干']);
-
-                /*和前一个地支比较*/
-                var diff_br1=get_branches_relation(current_br,output[prev_z+'支']);
-                if(diff_br1.刑) current_br_str.刑.push(diff_br1.刑);
-                if(diff_br1.冲) current_br_str.冲.push(diff_br1.冲);
-                if(diff_br1.害) current_br_str.害.push(diff_br1.害);
-
-                output[v+'柱凶吉']=get_xiongji(current_br,output[prev_z+'支']);
-            }
-
-            if(next_z){
-
-                /*和后一个天干比较*/
-                var diff_st=get_stems_relation(天干,output[next_z+'干']);
+				/*和后一个天干比较*/
+                var diff_st=get_stems_relation(current_天干,output[next_z+'干']);
                 /*和后一个地支比较*/
                 var diff_br=get_branches_relation(current_br,output[next_z+'支']);
 
@@ -1291,28 +1282,37 @@ var sb_calc_tools={
                 }
 
                 output[v+'干'+next_z+'干']=diff_st;
-            }
-
+				
+				
+				var prev_z=t_arr[x-1];/*前一个*/
+				  
+				output[v+'柱凶吉']=get_xiongji(current_br,output[prev_z+'支']);
+			}
+            
+           
+            
 			/*日柱再额外计算和年柱,月柱的关系*/
             if(v=='日'){
-                var diff_br_tmp=get_branches_relation(current_br,output['年支']);
-                output['年支日支']=diff_br_tmp;
-				var diff_br_tmp2=get_branches_relation(current_br,output['月支']);
-                output['月支日支']=diff_br_tmp2;
+				// var diff_st_tmp=get_stems_relation(current_天干,output['年干']);
+				// output['年干日干']=diff_st_tmp;
+                // var diff_br_tmp=get_branches_relation(current_br,output['年支']);
+                // output['年支日支']=diff_br_tmp;
+				// var diff_br_tmp2=get_branches_relation(current_br,output['月支']);
+                // output['月支日支']=diff_br_tmp2;
             }
 
             output[v+'干支关系']={};/*TODO::*/
 
             if(output['大运干']){
                 /*和大运柱比较,大运柱均匀作用于每一柱*/
-                output['大运'+v+'干关系']=get_stems_relation(天干,output['大运干']);
+                output['大运'+v+'干关系']=get_stems_relation(current_天干,output['大运干']);
                 output['大运'+v+'支关系']=get_branches_relation(current_br,output['大运支']);
             }
 
             output[v+'干强弱']=天干强弱;
             output[v+'支强弱']=current_br_str;
 
-            output[v+'柱纳音']=get_nayin(天干+current_br);
+            output[v+'柱纳音']=get_nayin(current_天干+current_br);
 			
         });
 
@@ -1393,6 +1393,7 @@ var sb_calc_tools={
     * */
     parse_all:function(org_word_info,liunian_word_info,cfg){
         if(!cfg) cfg={};
+        if(!liunian_word_info) liunian_word_info={};
 
         var calc_dynamic_effect=cfg.calc_dynamic_effect;
 
@@ -1407,7 +1408,7 @@ var sb_calc_tools={
         }
         /*计算地支藏干和透出*/
         $.each(['年','月','日','时','大运'],function(k,check_pos){
-            var cg_1=地支藏干[output[check_pos+'支']];
+            var cg_1=地支藏干[output[check_pos+'支']] || {};
             var cg_2=地支藏干[liunian[check_pos+'支']] || {};
             $.each(q_arr,function(k2,qi_name) {
                 var cg_1_word=cg_1[qi_name];
@@ -1823,7 +1824,7 @@ sb_calc_tools.get_date_split_arr=function(str){
 	/*获取阳历年月日时的数值*/
 	if(typeof(str)=='string'){
 		var date_arr=str.split(' ');
-		var delimiter_year='/';
+		var delimiter_year='-';
 		date_arr[0]=date_arr[0].split(delimiter_year);
 		date_arr[1]=date_arr[1].split(':');
 
@@ -1840,7 +1841,7 @@ sb_calc_tools.get_date_split_arr=function(str){
 		re.push(time.getMinutes());
 		re.push(time.getSeconds());
 
-		return [re[0],re[1],re[2],re[3],str,re[0]+'/'+re[1]+'/'+re[2]+' '+re[3]+':'+re[4]+':'+re[5]];
+		return [re[0],re[1],re[2],re[3],str,re[0]+'-'+re[1]+'-'+re[2]+' '+re[3]+':'+re[4]+':'+re[5]];
 	}
 
 	return str;

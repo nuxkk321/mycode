@@ -8,7 +8,7 @@ var child_process = require('child_process');
 var net= require('net');
 
 
-var temp_path=process.cwd();/*临时文件目录*/
+var temp_path=__dirname;/*当前目录*/
 var temp_dir=path.dirname(temp_path);/*程序根目录*/
 var exec_path=path.dirname(process.execPath);/*安装文件所在目录*/
 
@@ -118,7 +118,7 @@ var http_serv={
     },
     get_res:{
         'public':function(req,res){
-            var file=temp_path+req.url;
+            var file=temp_dir+req.url;
             //dlog('req public file:',file);
             if(fs.existsSync(file) && !fs.statSync(file).isDirectory()){
                 res.write(fs.readFileSync(file));
@@ -126,12 +126,12 @@ var http_serv={
             res.end();
         },
         'index':function(req,res){
-            var file_content=fs.readFileSync(temp_path+'/html/index.html');
+            var file_content=fs.readFileSync(temp_dir+'/public/html/index.html');
             res.write(file_content);
             res.end();
         },
 		'index2':function(req,res){
-            var file_content=fs.readFileSync(temp_path+'/html/index2.html');
+            var file_content=fs.readFileSync(temp_dir+'/public/html/index2.html');
             res.write(file_content);
             res.end();
         },
@@ -152,8 +152,8 @@ var http_serv={
 				res.end();
 				return '';
 			}
-			var json_file_name=temp_path+'/public/month_jieqi_'+year+'.json';
-			console.log(5555555,'查询节气数据:',year,json_file_name,fs.existsSync(json_file_name)?'文件存在':'文件不存在');
+			var json_file_name=temp_dir+'/public/month_jieqi_'+year+'.json';
+			
 			if (fs.existsSync(json_file_name)) {
 				var data=fs.readFileSync(json_file_name,'utf8');
 				res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -161,6 +161,7 @@ var http_serv={
 				res.end();
 				return '';
 			}
+			console.log(5555555,'查询节气数据:',year,json_file_name,'文件不存在');
 			
 			var send_data={year:year};
 			jieqi_data_api.query(send_data,function(err,re){
@@ -186,7 +187,7 @@ http_serv.restart();
 for(var x in process.argv){
 	// console.log(123123231,process.argv[x]);
 	if(process.argv[x]=='auto_open'){
-		child_process.exec(temp_path+'/index.url',{
+		child_process.exec(temp_dir+'/index.url',{
 			   env: process.env
 		   },
 		   function (err, stdout, stderr) {
@@ -264,7 +265,7 @@ var loopg={
             }
 			//console.log('res!!!',re);
 			var data=parse_jieqi_data(re.list);
-			fs.writeFileSync(temp_path+'/public/month_jieqi_'+year+'.json',JSON.stringify(data));
+			fs.writeFileSync(temp_dir+'/public/month_jieqi_'+year+'.json',JSON.stringify(data));
 			console.log('end!!!',data);
         });
     }

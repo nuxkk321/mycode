@@ -1,4 +1,4 @@
 ::@ECHO OFF 
 title " test 8word" 
-..\node node/main.js
+%~dp0\..\node %~dp0\node\main.js
 pause
