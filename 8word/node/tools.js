@@ -16,10 +16,10 @@ exports.str_pad=function(input,pad_length,pad_string,pad_type){
 };
 exports.format_date=function(stamp,lv,return_str){
     var time,re=[];
-    if(stamp<0){
-        time= new Date();
-    }else{
+    if(stamp>0){
         time= new Date(stamp);
+    }else{
+        time= new Date();
     }
 
     if(!lv) lv=6;
