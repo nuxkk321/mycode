@@ -59,6 +59,18 @@
 			height:20px;
 			line-height:20px;
 			vertical-align:top;
+			position: relative;
+		}
+		.ex_info_cell_float_label{
+			font-size: 16px;
+			width: 38px;
+			height: 36px;
+			line-height: 18px;
+			position: absolute;
+			bottom: -21px;
+			right: 2px;
+			background-color: #FF0063;
+			z-index: 9999;
 		}
 		.border_span{
             display: inline-block;
@@ -541,7 +553,7 @@
         $('.c_2_8',winfo_box).html(build_ss_box('时'));
 		
 		
-		
+		//创建 符合特定条件的 说明标签
 		function concat_ex_info_str(info_arr,str,tis_lv){
 			if(!tis_lv) tis_lv=0;
 			var tis_lv_str='tips_'+tis_lv;
@@ -554,15 +566,28 @@
 			return '<div class="ex_info_cell border_span '+tis_lv_str+'">'+str+'</div>';
 		}
 		
+		// 二次检查 符合特定条件的标签 增加更上一层的提示标签
+		function set_ex_label(p1,p2){
+			var str=p1+'干冲'+p2+'干';
+			if(word_info[p1+'干'+p2+'干'] && word_info[p1+'干'+p2+'干'].冲){
+				if(word_info[p1+'支'+p2+'支'].冲){
+					str+='<div class="ex_info_cell_float_label border_span ">天克地冲</div>';
+				}
+					
+			}
+			return str;
+		}
 		var st_ex_info='';
-		st_ex_info+=concat_ex_info_str(word_info['年干日干'].冲,'年干冲日干',1);
-		st_ex_info+=concat_ex_info_str(word_info['月干日干'].冲,'月干冲日干',2);
+		st_ex_info+=concat_ex_info_str(word_info['年干日干'].冲,set_ex_label('年','日'),1);
+		st_ex_info+=concat_ex_info_str(word_info['月干日干'].冲,set_ex_label('月','日'),2);
 		
-		st_ex_info+=concat_ex_info_str(word_info['年干时干'].冲,'年干冲时干',3);
-		st_ex_info+=concat_ex_info_str(word_info['月干时干'].冲,'月干冲时干',3);
-		st_ex_info+=concat_ex_info_str(word_info['日干时干'].冲,'日干冲时干',3);
+		st_ex_info+=concat_ex_info_str(word_info['年干时干'].冲,set_ex_label('年','时'),3);
+		st_ex_info+=concat_ex_info_str(word_info['月干时干'].冲,set_ex_label('月','时'),3);
+		st_ex_info+=concat_ex_info_str(word_info['日干时干'].冲,set_ex_label('日','时'),3);
 		
 	
+		
+		
 		
 		$('.c_2_9',winfo_box).html(st_ex_info);
 		
@@ -650,6 +675,8 @@
             '</div>' ;
             return re;
         }
+		
+		
         $('.c_4_1',winfo_box).html('地支');
         $('.c_4_2',winfo_box).html(br_info('年'));
         $('.c_4_3',winfo_box).html(build_br_rela(word_info.年支月支));
